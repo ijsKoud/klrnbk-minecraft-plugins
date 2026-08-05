@@ -2,11 +2,13 @@ package net.terraimperia.discord.rewards.services.database
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import com.zaxxer.hikari.HikariDataSource
 import net.terraimperia.discord.rewards.services.config.models.DatabaseConfigModel
-import org.flywaydb.core.Flyway
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.transactions.transaction
+import net.terraimperia.discord.rewards.services.database.tables.DiscordLinkRequestCodeTable
+import net.terraimperia.discord.rewards.services.database.tables.DiscordLinkTable
+import org.jetbrains.exposed.v1.core.Transaction
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import org.slf4j.Logger
 
 @Singleton
@@ -19,20 +21,26 @@ class DatabaseService
         fun start(config: DatabaseConfigModel) {
             logger.info("Connecting to database...")
 
-            val source = datasource.connect(config)
-            migrations(source)
+            datasource.connect(config)
+            migrations()
 
             logger.info("Database connected.")
         }
 
-        fun migrations(dataSource: HikariDataSource) {
+        fun migrations() {
             logger.debug("Performing database migrations...")
 
-            Flyway
-                .configure()
-                .dataSource(dataSource)
-                .load()
-                .migrate()
+            query {
+                val statements =
+                    MigrationUtils.statementsRequiredForDatabaseMigration(
+                        *arrayOf(DiscordLinkTable, DiscordLinkRequestCodeTable),
+                        withLogs = false,
+                    )
+
+                statements.forEach { sql ->
+                    TransactionManager.current().exec(sql)
+                }
+            }
 
             logger.debug("Database migrations completed.")
         }
