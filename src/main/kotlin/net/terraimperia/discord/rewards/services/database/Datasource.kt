@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.inject.Singleton
 import net.terraimperia.discord.rewards.services.config.models.DatabaseConfigModel
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 
 @Singleton
 class Datasource {
@@ -14,6 +14,7 @@ class Datasource {
         dataSource =
             HikariDataSource(
                 HikariConfig().apply {
+                    driverClassName = "org.postgresql.Driver"
                     jdbcUrl = config.jdbcUrl
 
                     username = config.username
