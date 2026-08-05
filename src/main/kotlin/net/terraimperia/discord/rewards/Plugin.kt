@@ -8,6 +8,7 @@ import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
 import net.terraimperia.discord.rewards.facade.PluginFacade
+import net.terraimperia.discord.rewards.services.register.AdminCommandsRegisterService
 import org.slf4j.Logger
 import java.nio.file.Path
 
@@ -30,5 +31,6 @@ class Plugin
         fun onProxyInitialization(event: ProxyInitializeEvent) {
             val injector = Guice.createInjector(PluginModule(logger, proxy, dataDirectory))
             injector.getInstance(PluginFacade::class.java).start()
+            injector.getInstance(AdminCommandsRegisterService::class.java).register(this)
         }
     }
