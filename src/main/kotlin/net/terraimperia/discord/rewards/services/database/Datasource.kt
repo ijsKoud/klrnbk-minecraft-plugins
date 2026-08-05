@@ -30,7 +30,7 @@ class Datasource {
 
     fun disconnect() = dataSource.close()
 
-    fun reload(config: DatabaseConfigModel) {
+    fun reconnect(config: DatabaseConfigModel) {
         disconnect()
         connect(config)
     }

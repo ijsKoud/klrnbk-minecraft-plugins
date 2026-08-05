@@ -18,6 +18,15 @@ class DatabaseService
         private val datasource: Datasource,
         private val logger: Logger,
     ) {
+        fun restart(config: DatabaseConfigModel) {
+            logger.info("Restarting database connection...")
+
+            datasource.reconnect(config)
+            migrations()
+
+            logger.info("Database connection restarted.")
+        }
+
         fun start(config: DatabaseConfigModel) {
             logger.info("Connecting to database...")
 
