@@ -1,6 +1,6 @@
 package net.terraimperia.discord.rewards.services.database.tables
 
-import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.v1.core.dao.id.java.UUIDTable
 import java.util.UUID
 
 object DiscordLinkTable : UUIDTable("discord_links") {
