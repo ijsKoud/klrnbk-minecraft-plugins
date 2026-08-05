@@ -21,9 +21,10 @@ dependencies {
 
     // Database Dependencies
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.jetbrains.exposed:exposed-core:0.61.0")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.61.0")
-    implementation("org.flywaydb:flyway-core:11.12.0")
+    implementation("org.jetbrains.exposed:exposed-core:1.4.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:1.4.0")
+    implementation("org.jetbrains.exposed:exposed-migration-core:1.4.0")
+    implementation("org.jetbrains.exposed:exposed-migration-jdbc:1.4.0")
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")
 }
