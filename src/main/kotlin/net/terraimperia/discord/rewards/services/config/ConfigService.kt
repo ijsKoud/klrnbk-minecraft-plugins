@@ -9,7 +9,6 @@ import org.slf4j.Logger
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader
 import org.spongepowered.configurate.loader.HeaderMode
-import org.spongepowered.configurate.yaml.NodeStyle
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,9 +36,7 @@ class ConfigService
         }
 
         @Throws(IOException::class)
-        fun reload() {
-            load()
-        }
+        fun reload(): PluginConfigModel = load()
 
         @Throws(IOException::class)
         private fun loadConfiguration(): PluginConfigModel {
