@@ -5,10 +5,10 @@ import com.google.inject.Singleton
 import net.terraimperia.discord.rewards.services.database.DatabaseService
 import net.terraimperia.discord.rewards.services.database.tables.DiscordLink
 import net.terraimperia.discord.rewards.services.database.tables.DiscordLinkTable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import java.util.UUID
 
 @Singleton
