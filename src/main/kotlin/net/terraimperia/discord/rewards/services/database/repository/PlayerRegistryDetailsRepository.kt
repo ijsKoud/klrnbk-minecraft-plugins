@@ -55,6 +55,15 @@ class PlayerRegistryDetailsRepository
                     }
             }
 
+        fun resetLinkStatus(uuid: UUID) =
+            database.query {
+                PlayerRegistryDetailsTable
+                    .update({ PlayerRegistryDetailsTable.id eq uuid }) {
+                        it[PlayerRegistryDetailsTable.registered] = false
+                        it[PlayerRegistryDetailsTable.booster] = false
+                    }
+            }
+
         fun deleteById(uuid: UUID) =
             database.query {
                 PlayerRegistryDetailsTable
