@@ -42,4 +42,31 @@ class LinkFacade
             context.source.sendMessage(message)
             return 1
         }
+
+        fun register(context: CommandContext<CommandSource>): Int {
+            if (context.source !is Player) {
+                val message = miniMessageService.deserialize(configService.config.messages.playerOnlyCommand)
+                context.source.sendMessage(message)
+                return 0
+            }
+
+            val player = context.source as Player
+            val id = player.uniqueId
+            val linkDetails = linkService.getStatus(id)
+
+            if (linkDetails.isLinked) {
+                val message = miniMessageService.deserialize(configService.config.messages.alreadyLinked)
+                context.source.sendMessage(message)
+                return 0
+            }
+
+            val linkCode = linkService.createRegistrationCode(id)
+            val message =
+                miniMessageService.deserialize(
+                    configService.config.messages.registrationCode,
+                    Placeholder.parsed("link-code", linkCode),
+                )
+            context.source.sendMessage(message)
+            return 1
+        }
     }

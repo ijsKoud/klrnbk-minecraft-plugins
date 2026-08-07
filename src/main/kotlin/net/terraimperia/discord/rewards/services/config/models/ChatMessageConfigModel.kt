@@ -17,6 +17,21 @@ class ChatMessageConfigModel {
     @Setting("player-only-command")
     val playerOnlyCommand: String = "<red>This command can only be used by players!</red>"
 
+    @Setting("already-linked")
+    val alreadyLinked: String =
+        arrayOf(
+            "<red>You are already linked to a Discord account!",
+            "You can unlink your account by using the <click:suggest_command:'/unlink'><bold>/unlink</bold></click> command.</red>",
+        ).joinToString("\n")
+
+    @Setting("registration-code")
+    val registrationCode: String =
+        arrayOf(
+            "<green>You can register your account using the following code: <link-code>",
+            "Use the following command (click to copy) in our Discord server to complete the process.\n",
+            "<click:coppy_to_clipboard:'/link <link-code>'><bold>/link <link-code></bold></click></green>",
+        ).joinToString("\n")
+
     val yes: String = "<yes>Yes</yes>"
     val no: String = "<no>No</no>"
     val undefined: String = "<gray>---</gray>"
