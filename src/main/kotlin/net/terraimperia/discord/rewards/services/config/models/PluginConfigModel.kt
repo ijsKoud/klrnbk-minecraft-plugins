@@ -10,4 +10,10 @@ class PluginConfigModel {
 
     @Comment("Database configuration for the plugin. This is where all linked data will be stored.")
     val database: DatabaseConfigModel = DatabaseConfigModel()
+
+    @Comment("Configuration about the registration process.")
+    val registration: RegistrationConfigModel = RegistrationConfigModel()
+
+    @Comment("Customize the chat responses here.")
+    val messages: ChatMessageConfigModel = ChatMessageConfigModel()
 }
