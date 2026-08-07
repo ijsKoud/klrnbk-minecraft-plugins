@@ -23,6 +23,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:6.3.0")
     implementation("org.jetbrains.exposed:exposed-core:1.4.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:1.4.0")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:1.4.0")
     implementation("org.jetbrains.exposed:exposed-migration-core:1.4.0")
     implementation("org.jetbrains.exposed:exposed-migration-jdbc:1.4.0")
     implementation("org.postgresql:postgresql:42.7.8")
