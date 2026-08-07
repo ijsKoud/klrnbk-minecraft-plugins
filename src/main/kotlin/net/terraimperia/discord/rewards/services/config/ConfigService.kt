@@ -63,6 +63,8 @@ class ConfigService
 
             val node: ConfigurationNode = loader.load()
             _config = node.get(PluginConfigModel::class.java, _config) ?: PluginConfigModel()
+            loader.save(node)
+
             return _config!!
         }
     }
