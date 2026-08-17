@@ -4,8 +4,10 @@ import com.google.inject.Guice
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
+import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
+import com.velocitypowered.api.plugin.meta.PluginDependency
 import com.velocitypowered.api.proxy.ProxyServer
 import nl.klrnbk.minecraft.connect.discord.facade.PluginFacade
 import nl.klrnbk.minecraft.connect.discord.services.register.AdminCommandsRegisterService
@@ -20,6 +22,12 @@ import java.nio.file.Path
     description = "Plugin that automatically gives in-game perks/ranks for players that received them on Discord",
     url = "klrnbk.nl/projects/klrnbk-minecraft-plugins",
     authors = ["ijsKoud <daan@klrnbk.nl>"],
+    dependencies = [
+        Dependency(
+            id = "nlogin",
+            optional = true,
+        ),
+    ],
 )
 class Plugin
     @Inject

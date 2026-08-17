@@ -8,6 +8,7 @@ import nl.klrnbk.minecraft.connect.discord.services.config.VersionService
 import nl.klrnbk.minecraft.connect.discord.services.database.DatabaseService
 import nl.klrnbk.minecraft.connect.discord.services.register.AdminCommandsRegisterService
 import nl.klrnbk.minecraft.connect.discord.services.register.LinkCommandRegistryService
+import nl.klrnbk.minecraft.connect.discord.services.register.LookupCommandRegisterService
 import nl.klrnbk.minecraft.connect.discord.services.register.UnlinkCommandRegistryService
 import org.slf4j.Logger
 
@@ -22,6 +23,7 @@ class PluginFacade
         private val adminCommandsRegisterService: AdminCommandsRegisterService,
         private val linkCommandRegistryService: LinkCommandRegistryService,
         private val unlinkCommandRegistryService: UnlinkCommandRegistryService,
+        private val lookupCommandRegisterService: LookupCommandRegisterService,
     ) {
         fun start(plugin: Plugin) {
             val config = configService.load()
@@ -32,6 +34,7 @@ class PluginFacade
             adminCommandsRegisterService.register(plugin)
             linkCommandRegistryService.register(plugin)
             unlinkCommandRegistryService.register(plugin)
+            lookupCommandRegisterService.register(plugin)
 
             logger.info("Plugin version: $version")
             logger.info("Plugin is ready.")

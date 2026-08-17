@@ -53,6 +53,24 @@ class ChatMessageConfigModel {
             "Want to link it again? Use the <click:suggest_command:'/link'><bold>/link</bold></click> command</green>",
         ).joinToString("\n")
 
+    @Setting("player-has-not-linked-discord")
+    val noDiscordLinked: String =
+        arrayOf(
+            "<red>This player hasn't linked his Discord yet.</red>",
+        ).joinToString("\n")
+
+    @Setting("player-does-not-exist")
+    val playerDoesNotExist: String =
+        arrayOf(
+            "<red>Could not find this player, make sure they have been on the server at least once.</red>",
+        ).joinToString("\n")
+
+    @Setting("lookup-result")
+    val lookupResult: String =
+        arrayOf(
+            "The Discord username for <bold><minecraft-name></bold> is <bold><discord-username></bold>.",
+        ).joinToString("\n")
+
     val yes: String = "<yes>Yes</yes>"
     val no: String = "<no>No</no>"
     val undefined: String = "<gray>---</gray>"
