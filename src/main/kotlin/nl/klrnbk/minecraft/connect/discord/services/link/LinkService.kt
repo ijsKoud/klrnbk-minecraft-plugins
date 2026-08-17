@@ -61,4 +61,9 @@ class LinkService
             discordLinkRepository.deleteById(id)
             playerRegistryDetailsRepository.resetLinkStatus(id)
         }
+
+        fun getPlayersDiscordUsername(username: String): String? {
+            val playerId = playerRegistryDetailsRepository.findIdByUsername(username) ?: return null
+            return discordLinkRepository.findById(playerId)?.discordUsername
+        }
     }
