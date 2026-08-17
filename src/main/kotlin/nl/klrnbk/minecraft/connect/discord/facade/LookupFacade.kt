@@ -8,6 +8,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import nl.klrnbk.minecraft.connect.discord.services.config.ConfigService
 import nl.klrnbk.minecraft.connect.discord.services.link.LinkService
 import nl.klrnbk.minecraft.connect.discord.services.minimessage.MiniMessageService
+import nl.klrnbk.minecraft.connect.discord.services.playerdetails.PlayerDetailsService
 
 @Singleton
 class LookupFacade
@@ -16,10 +17,22 @@ class LookupFacade
         private val configService: ConfigService,
         private val miniMessageService: MiniMessageService,
         private val linkService: LinkService,
+        private val playerDetailsService: PlayerDetailsService,
     ) {
         fun lookupPlayersDiscord(context: CommandContext<CommandSource>): Int {
             val playerName = context.getArgument("player", String::class.java)
-            val discordUsername = linkService.getPlayersDiscordUsername(playerName)
+            val playerId = playerDetailsService.getPlayerIdByUsername(playerName)
+            if (playerId == null) {
+                val message =
+                    miniMessageService.deserialize(
+                        configService.config.messages.noDiscordLinked,
+                    )
+
+                context.source.sendMessage(message)
+                return 1
+            }
+
+            val discordUsername = linkService.getPlayersDiscordUsername(playerId)
             if (discordUsername == null) {
                 val message =
                     miniMessageService.deserialize(

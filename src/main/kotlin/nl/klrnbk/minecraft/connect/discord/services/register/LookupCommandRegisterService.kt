@@ -5,7 +5,6 @@ import com.google.inject.Singleton
 import com.velocitypowered.api.command.CommandManager
 import com.velocitypowered.api.proxy.ProxyServer
 import nl.klrnbk.minecraft.connect.discord.Plugin
-import nl.klrnbk.minecraft.connect.discord.commands.LinkCommand
 import nl.klrnbk.minecraft.connect.discord.commands.LookupCommand
 import org.slf4j.Logger
 

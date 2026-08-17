@@ -59,12 +59,6 @@ class ChatMessageConfigModel {
             "<red>This player hasn't linked his Discord yet.</red>",
         ).joinToString("\n")
 
-    @Setting("player-does-not-exist")
-    val playerDoesNotExist: String =
-        arrayOf(
-            "<red>Could not find this player, make sure they have been on the server at least once.</red>",
-        ).joinToString("\n")
-
     @Setting("lookup-result")
     val lookupResult: String =
         arrayOf(

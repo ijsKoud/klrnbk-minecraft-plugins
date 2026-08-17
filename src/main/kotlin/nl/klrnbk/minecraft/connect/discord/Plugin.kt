@@ -3,15 +3,13 @@ package nl.klrnbk.minecraft.connect.discord
 import com.google.inject.Guice
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
-import com.velocitypowered.api.plugin.meta.PluginDependency
 import com.velocitypowered.api.proxy.ProxyServer
 import nl.klrnbk.minecraft.connect.discord.facade.PluginFacade
-import nl.klrnbk.minecraft.connect.discord.services.register.AdminCommandsRegisterService
-import nl.klrnbk.minecraft.connect.discord.services.register.LinkCommandRegistryService
 import org.slf4j.Logger
 import java.nio.file.Path
 
@@ -32,13 +30,19 @@ import java.nio.file.Path
 class Plugin
     @Inject
     constructor(
-        private val logger: Logger,
-        private val proxy: ProxyServer,
+        logger: Logger,
+        proxy: ProxyServer,
         @DataDirectory private val dataDirectory: Path,
     ) {
+        private val injector = Guice.createInjector(PluginModule(logger, proxy, dataDirectory))
+
         @Subscribe
         fun onProxyInitialization(event: ProxyInitializeEvent) {
-            val injector = Guice.createInjector(PluginModule(logger, proxy, dataDirectory))
             injector.getInstance(PluginFacade::class.java).start(this)
+        }
+
+        @Subscribe
+        fun onServerPostConnect(event: ServerPostConnectEvent) {
+            injector.getInstance(PluginFacade::class.java).updatePlayerUsernameInDatabase(event.player.uniqueId, event.player.username)
         }
     }
