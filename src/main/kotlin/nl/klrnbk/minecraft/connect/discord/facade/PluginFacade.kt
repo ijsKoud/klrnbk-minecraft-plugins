@@ -2,8 +2,6 @@ package nl.klrnbk.minecraft.connect.discord.facade
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import nl.klrnbk.minecraft.connect.discord.Plugin
 import nl.klrnbk.minecraft.connect.discord.services.config.ConfigService
 import nl.klrnbk.minecraft.connect.discord.services.config.VersionService
