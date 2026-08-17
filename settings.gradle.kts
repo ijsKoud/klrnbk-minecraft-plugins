@@ -1,1 +1,1 @@
-rootProject.name = "terraimperia__discord-rewards"
+rootProject.name = "klrnbk-connect-discord"
