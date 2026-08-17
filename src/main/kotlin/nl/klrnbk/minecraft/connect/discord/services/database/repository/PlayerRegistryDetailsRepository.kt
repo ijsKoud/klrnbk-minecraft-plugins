@@ -30,8 +30,19 @@ class PlayerRegistryDetailsRepository
                             lastRegistryDate = it[PlayerRegistryDetailsTable.lastRegistryDate],
                             isBooster = it[PlayerRegistryDetailsTable.booster],
                             isRegistered = it[PlayerRegistryDetailsTable.registered],
+                            username = it[PlayerRegistryDetailsTable.username],
                         )
                     }
+            }
+
+        fun findIdByUsername(username: String): UUID? =
+            database.query {
+                PlayerRegistryDetailsTable
+                    .selectAll()
+                    .where { PlayerRegistryDetailsTable.username eq username }
+                    .singleOrNull()
+                    ?.get(PlayerRegistryDetailsTable.id)
+                    ?.value
             }
 
         fun create(details: PlayerRegistryDetails) =
@@ -42,6 +53,7 @@ class PlayerRegistryDetailsRepository
                         it[PlayerRegistryDetailsTable.lastRegistryDate] = details.lastRegistryDate
                         it[PlayerRegistryDetailsTable.booster] = details.isBooster
                         it[PlayerRegistryDetailsTable.registered] = details.isRegistered
+                        it[PlayerRegistryDetailsTable.username] = details.username
                     }
             }
 
@@ -52,6 +64,7 @@ class PlayerRegistryDetailsRepository
                         it[PlayerRegistryDetailsTable.lastRegistryDate] = details.lastRegistryDate
                         it[PlayerRegistryDetailsTable.booster] = details.isBooster
                         it[PlayerRegistryDetailsTable.registered] = details.isRegistered
+                        it[PlayerRegistryDetailsTable.username] = details.username
                     }
             }
 
