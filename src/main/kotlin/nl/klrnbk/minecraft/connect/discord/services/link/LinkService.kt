@@ -7,11 +7,14 @@ import kotlinx.datetime.plus
 import nl.klrnbk.minecraft.connect.discord.services.database.repository.DiscordLinkRepository
 import nl.klrnbk.minecraft.connect.discord.services.database.repository.DiscordLinkRequestCodeRepository
 import nl.klrnbk.minecraft.connect.discord.services.database.repository.PlayerRegistryDetailsRepository
+import nl.klrnbk.minecraft.connect.discord.services.database.tables.DiscordLink
 import nl.klrnbk.minecraft.connect.discord.services.database.tables.DiscordLinkRequestCode
+import nl.klrnbk.minecraft.connect.discord.services.database.tables.PlayerRegistryDetails
 import nl.klrnbk.minecraft.connect.discord.services.link.models.LinkStatusModel
 import nl.klrnbk.minecraft.connect.discord.utils.formatInstantToDateTimeString
 import nl.klrnbk.minecraft.connect.discord.utils.getCryptographicRandomText
 import java.util.UUID
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 @Singleton
@@ -38,12 +41,15 @@ class LinkService
             return details.code
         }
 
-        fun createRegistrationCode(id: UUID): String {
+        fun createRegistrationCode(
+            id: UUID,
+            username: String,
+        ): String {
             val existingCode = getExistingRegistrationCode(id)
             if (existingCode != null) return existingCode
 
             val code = getCryptographicRandomText(16)
-            val details = DiscordLinkRequestCode(id, code)
+            val details = DiscordLinkRequestCode(id, code, username)
 
             discordLinkRequestCodeRepository.create(details)
             return code
@@ -62,5 +68,36 @@ class LinkService
             playerRegistryDetailsRepository.resetLinkStatus(id)
         }
 
+        fun link(
+            code: String,
+            discordUsername: String,
+            discordId: Long,
+            isBooster: Boolean,
+        ): UUID? {
+            val requestDetails = discordLinkRequestCodeRepository.findByCode(code) ?: return null
+            discordLinkRequestCodeRepository.deleteById(requestDetails.uuid)
+
+            discordLinkRepository.create(DiscordLink(requestDetails.uuid, discordUsername, isBooster, discordId))
+
+            val existingPlayerDetails =
+                playerRegistryDetailsRepository.findById(requestDetails.uuid) ?: PlayerRegistryDetails(
+                    requestDetails.uuid,
+                    requestDetails.minecraftUsername,
+                    Clock.System.now(),
+                    isBooster,
+                    true,
+                )
+
+            existingPlayerDetails.isBooster = isBooster
+            existingPlayerDetails.lastRegistryDate = Clock.System.now()
+            existingPlayerDetails.isRegistered = true
+
+            playerRegistryDetailsRepository.upsert(existingPlayerDetails)
+
+            return requestDetails.uuid
+        }
+
         fun getPlayersDiscordUsername(id: UUID): String? = discordLinkRepository.findById(id)?.discordUsername
+
+        fun getUsersMinecraftUuid(id: Long): UUID? = discordLinkRepository.findByDiscordId(id)?.uuid
     }

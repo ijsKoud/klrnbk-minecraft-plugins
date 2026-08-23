@@ -23,4 +23,6 @@ class PlayerDetailsService
         }
 
         fun getPlayerIdByUsername(username: String): UUID? = playerRegistryDetailsRepository.findIdByUsername(username)
+
+        fun getPlayersUsernameById(id: UUID): String? = playerRegistryDetailsRepository.findById(id)?.username
     }
