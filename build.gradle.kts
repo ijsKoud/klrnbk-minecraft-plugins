@@ -8,6 +8,7 @@ plugins {
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.nickuc.com/maven-releases/")
 }
 
 dependencies {
@@ -28,6 +29,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-migration-jdbc:1.4.0")
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")
+
+    // Discord Dependencies
+    implementation("net.dv8tion:JDA:6.5.0")
 }
 
 kotlin {
