@@ -33,6 +33,22 @@ class DiscordLinkRepository
                     }
             }
 
+        fun findByDiscordId(id: Long): DiscordLink? =
+            database.query {
+                DiscordLinkTable
+                    .selectAll()
+                    .where { DiscordLinkTable.discordId eq id }
+                    .singleOrNull()
+                    ?.let {
+                        DiscordLink(
+                            uuid = it[DiscordLinkTable.id].value,
+                            discordId = it[DiscordLinkTable.discordId],
+                            discordUsername = it[DiscordLinkTable.discordUsername],
+                            isServerBooster = it[DiscordLinkTable.booster],
+                        )
+                    }
+            }
+
         fun create(link: DiscordLink) =
             database.query {
                 DiscordLinkTable

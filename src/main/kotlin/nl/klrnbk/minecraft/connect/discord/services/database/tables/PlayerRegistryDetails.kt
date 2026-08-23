@@ -15,7 +15,7 @@ object PlayerRegistryDetailsTable : UUIDTable("player_registry_details") {
 data class PlayerRegistryDetails(
     val uuid: UUID,
     var username: String,
-    val lastRegistryDate: Instant,
-    val isBooster: Boolean,
-    val isRegistered: Boolean,
+    var lastRegistryDate: Instant,
+    var isBooster: Boolean,
+    var isRegistered: Boolean,
 )

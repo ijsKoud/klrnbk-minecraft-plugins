@@ -13,4 +13,8 @@ class RegistrationConfigModel {
     @Setting("booster-role")
     @Comment("The Discord role Id for users who are boosters.")
     val boosterRole: Long = 0
+
+    @Setting("discord-bot-token")
+    @Comment("The token for the Discord bot.")
+    val discordBotToken: String = ""
 }

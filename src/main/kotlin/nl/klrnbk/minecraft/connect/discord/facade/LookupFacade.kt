@@ -53,4 +53,9 @@ class LookupFacade
             context.source.sendMessage(message)
             return 0
         }
+
+        fun lookupUsersMinecraftUsername(userId: Long): String? {
+            val uuid = linkService.getUsersMinecraftUuid(userId) ?: return null
+            return playerDetailsService.getPlayersUsernameById(uuid)
+        }
     }

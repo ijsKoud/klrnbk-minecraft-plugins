@@ -5,9 +5,11 @@ import java.util.UUID
 
 object DiscordLinkRequestCodeTable : UUIDTable("discord_link_request_code") {
     val requestCode = varchar("request_code", 255)
+    val minecraftUsername = varchar("minecraft_username", 255)
 }
 
 data class DiscordLinkRequestCode(
     val uuid: UUID,
     val code: String,
+    val minecraftUsername: String,
 )

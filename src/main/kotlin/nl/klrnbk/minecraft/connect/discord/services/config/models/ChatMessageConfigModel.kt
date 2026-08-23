@@ -27,8 +27,8 @@ class ChatMessageConfigModel {
     @Setting("registration-code")
     val registrationCode: String =
         arrayOf(
-            "<green>You can register your account using the following code: <link-code>",
-            "Use the following command (click to copy) in our Discord server to complete the process.\n",
+            "<green>You can register your account using the following code: <bold><link-code></bold>",
+            "Use the following command (click to copy) in our Discord server to complete the process.\n\n",
             "<click:copy_to_clipboard:'/link <link-code>'><bold>/link <link-code></bold></click></green>",
         ).joinToString("\n")
 
@@ -36,7 +36,7 @@ class ChatMessageConfigModel {
     val notLinked: String =
         arrayOf(
             "<red>You have not linked to any Discord account yet!",
-            " Start by linking using the <click:suggest_command:'/link'><bold>/link</bold></click> command.</red>",
+            "Start by linking using the <click:suggest_command:'/link'><bold>/link</bold></click> command.</red>",
         ).joinToString("\n")
 
     @Setting("unlink-too-soon")
@@ -65,7 +65,10 @@ class ChatMessageConfigModel {
             "The Discord username for <bold><minecraft-name></bold> is <bold><discord-username></bold>.",
         ).joinToString("\n")
 
-    val yes: String = "<yes>Yes</yes>"
-    val no: String = "<no>No</no>"
+    @Setting("successful-link")
+    val successfulLink: String = "<green>Successfully linked your Discord account with <discord-username>!</green>"
+
+    val yes: String = "<green>Yes</green>"
+    val no: String = "<red>No</red>"
     val undefined: String = "<gray>---</gray>"
 }

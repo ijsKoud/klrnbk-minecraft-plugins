@@ -10,6 +10,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.upsert
 import java.util.UUID
 
 @Singleton
@@ -45,10 +46,10 @@ class PlayerRegistryDetailsRepository
                     ?.value
             }
 
-        fun create(details: PlayerRegistryDetails) =
+        fun upsert(details: PlayerRegistryDetails) =
             database.query {
                 PlayerRegistryDetailsTable
-                    .insert {
+                    .upsert {
                         it[PlayerRegistryDetailsTable.id] = details.uuid
                         it[PlayerRegistryDetailsTable.lastRegistryDate] = details.lastRegistryDate
                         it[PlayerRegistryDetailsTable.booster] = details.isBooster
