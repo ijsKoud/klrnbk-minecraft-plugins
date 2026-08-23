@@ -5,11 +5,15 @@ import com.google.inject.Singleton
 import com.mojang.brigadier.context.CommandContext
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
+import com.velocitypowered.api.proxy.ProxyServer
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import nl.klrnbk.minecraft.connect.discord.services.config.ConfigService
 import nl.klrnbk.minecraft.connect.discord.services.link.LinkService
 import nl.klrnbk.minecraft.connect.discord.services.minimessage.MiniMessageService
 import nl.klrnbk.minecraft.connect.discord.utils.formatInstantToDateTimeString
+import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Clock
 
 @Singleton
@@ -19,6 +23,7 @@ class LinkFacade
         private val configService: ConfigService,
         private val miniMessageService: MiniMessageService,
         private val linkService: LinkService,
+        private val server: ProxyServer,
     ) {
         fun hasPermission(source: CommandSource): Boolean {
             if (source !is Player) {
@@ -61,7 +66,7 @@ class LinkFacade
                 return 0
             }
 
-            val linkCode = linkService.createRegistrationCode(id)
+            val linkCode = linkService.createRegistrationCode(id, player.username)
             val message =
                 miniMessageService.deserialize(
                     configService.config.messages.registrationCode,
@@ -97,5 +102,32 @@ class LinkFacade
             val message = miniMessageService.deserialize(configService.config.messages.unlinked)
             context.source.sendMessage(message)
             return 1
+        }
+
+        fun linkDiscord(
+            username: String,
+            id: Long,
+            isBooster: Boolean,
+            code: String,
+        ): Boolean {
+            val playerId = linkService.link(code, username, id, isBooster)
+            val playerInGame = server.getPlayer(playerId).getOrNull() ?: return playerId != null
+            playerInGame.sendMessage(
+                miniMessageService.deserialize(
+                    configService.config.messages.successfulLink,
+                    Placeholder.unparsed("discord-username", username),
+                ),
+            )
+
+            playerInGame.playSound(
+                Sound.sound(
+                    Key.key("entity.player.levelup"),
+                    Sound.Source.PLAYER,
+                    1f,
+                    1f,
+                ),
+                Sound.Emitter.self(),
+            )
+            return playerId != null
         }
     }

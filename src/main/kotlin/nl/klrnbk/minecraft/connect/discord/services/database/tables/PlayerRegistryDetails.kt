@@ -7,13 +7,15 @@ import kotlin.time.Instant
 
 object PlayerRegistryDetailsTable : UUIDTable("player_registry_details") {
     val lastRegistryDate = timestamp("last_registry_date")
+    val username = varchar("username", 255)
     val booster = bool("is_booster").default(false)
     val registered = bool("is_registered").default(true)
 }
 
 data class PlayerRegistryDetails(
     val uuid: UUID,
-    val lastRegistryDate: Instant,
-    val isBooster: Boolean,
-    val isRegistered: Boolean,
+    var username: String,
+    var lastRegistryDate: Instant,
+    var isBooster: Boolean,
+    var isRegistered: Boolean,
 )

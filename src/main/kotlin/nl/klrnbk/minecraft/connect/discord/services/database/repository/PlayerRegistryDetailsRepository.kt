@@ -10,6 +10,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.upsert
 import java.util.UUID
 
 @Singleton
@@ -30,18 +31,30 @@ class PlayerRegistryDetailsRepository
                             lastRegistryDate = it[PlayerRegistryDetailsTable.lastRegistryDate],
                             isBooster = it[PlayerRegistryDetailsTable.booster],
                             isRegistered = it[PlayerRegistryDetailsTable.registered],
+                            username = it[PlayerRegistryDetailsTable.username],
                         )
                     }
             }
 
-        fun create(details: PlayerRegistryDetails) =
+        fun findIdByUsername(username: String): UUID? =
             database.query {
                 PlayerRegistryDetailsTable
-                    .insert {
+                    .selectAll()
+                    .where { PlayerRegistryDetailsTable.username eq username }
+                    .singleOrNull()
+                    ?.get(PlayerRegistryDetailsTable.id)
+                    ?.value
+            }
+
+        fun upsert(details: PlayerRegistryDetails) =
+            database.query {
+                PlayerRegistryDetailsTable
+                    .upsert {
                         it[PlayerRegistryDetailsTable.id] = details.uuid
                         it[PlayerRegistryDetailsTable.lastRegistryDate] = details.lastRegistryDate
                         it[PlayerRegistryDetailsTable.booster] = details.isBooster
                         it[PlayerRegistryDetailsTable.registered] = details.isRegistered
+                        it[PlayerRegistryDetailsTable.username] = details.username
                     }
             }
 
@@ -52,6 +65,7 @@ class PlayerRegistryDetailsRepository
                         it[PlayerRegistryDetailsTable.lastRegistryDate] = details.lastRegistryDate
                         it[PlayerRegistryDetailsTable.booster] = details.isBooster
                         it[PlayerRegistryDetailsTable.registered] = details.isRegistered
+                        it[PlayerRegistryDetailsTable.username] = details.username
                     }
             }
 

@@ -27,6 +27,22 @@ class DiscordLinkRequestCodeRepository
                         DiscordLinkRequestCode(
                             uuid = it[DiscordLinkRequestCodeTable.id].value,
                             code = it[DiscordLinkRequestCodeTable.requestCode],
+                            minecraftUsername = it[DiscordLinkRequestCodeTable.minecraftUsername],
+                        )
+                    }
+            }
+
+        fun findByCode(code: String): DiscordLinkRequestCode? =
+            database.query {
+                DiscordLinkRequestCodeTable
+                    .selectAll()
+                    .where { DiscordLinkRequestCodeTable.requestCode eq code }
+                    .singleOrNull()
+                    ?.let {
+                        DiscordLinkRequestCode(
+                            uuid = it[DiscordLinkRequestCodeTable.id].value,
+                            code = it[DiscordLinkRequestCodeTable.requestCode],
+                            minecraftUsername = it[DiscordLinkRequestCodeTable.minecraftUsername],
                         )
                     }
             }
@@ -37,6 +53,7 @@ class DiscordLinkRequestCodeRepository
                     .insert {
                         it[id] = link.uuid
                         it[requestCode] = link.code
+                        it[minecraftUsername] = link.minecraftUsername
                     }
             }
 
