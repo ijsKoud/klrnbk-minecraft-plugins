@@ -1,0 +1,94 @@
+[versions]
+# Toolchain
+# Kotlin 2.4.20-Beta2 is the first release with documented Gradle 9.3+ support;
+# jvmTarget 25 matches Paper 26.2 / Velocity 4.x's runtime requirement.
+kotlin = "2.4.20-Beta2"
+jvmTarget = "25"
+
+# Gradle plugins
+# Shadow 9.x + Gradle 9.x is a confirmed real-world pairing (several
+# PaperMC-ecosystem projects moved both together in mid-2026).
+shadow = "9.2.2"
+# paperweight-userdev is only needed if you access server internals (NMS).
+# Most plugins should stick to paper-api below instead. Not currently
+# applied anywhere in this repo — version/Gradle-9 compatibility unverified.
+paperweight-userdev = "1.7.5"
+# run-paper/run-velocity 3.1.0/3.0.2 require Gradle 9.7+ (this is why the
+# project is now on Gradle 9.7.1 rather than 9.0-9.6).
+runPaper = "3.1.0"
+runVelocity = "3.0.2"
+
+# Server / proxy APIs (compileOnly — provided by the platform at runtime).
+# Paper dropped the old "1.21.x-R0.1-SNAPSHOT" scheme in 26.1 for a
+# year-based version + build number (see docs.papermc.io/paper/dev/project-setup).
+# The `.build.+` suffix is Paper's own recommended "latest build" range —
+# fine here since paper-api is compileOnly and never shaded into the jar.
+paper-api = "26.2.build.+"
+velocity-api = "4.1.0-SNAPSHOT"
+
+# PacketEvents provides the Minecraft protocol layer of plugins:gui (compileOnly —
+# the PacketEvents Velocity plugin must be installed on the proxy). 2.14.0 is the
+# first release with Minecraft 26.3 support and still covers 26.2 (V_26_2).
+packetevents = "2.14.0"
+
+# Shared libraries (safe to shade into the final jars)
+kotlinx-coroutines = "1.9.0"
+kotlinx-serialization = "1.7.3"
+adventure = "5.2.0"
+jackson = "2.18.2"
+
+# Testing
+junit = "5.11.3"
+# JUnit Platform artifacts use "1.x" versioning aligned with Jupiter's
+# "5.x" (5.11.3 <-> 1.11.3) — junit-platform-launcher is a separate
+# artifact from the junit-jupiter aggregator and, as of Gradle 9, is no
+# longer pulled in automatically; without it explicitly on the test
+# runtime classpath, `useJUnitPlatform()` fails with "Failed to load JUnit
+# Platform" at test-execution time.
+junit-platform = "1.11.3"
+mockk = "1.13.13"
+mockbukkit = "4.116.1"
+
+[libraries]
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
+velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-api" }
+packetevents-velocity = { module = "com.github.retrooper:packetevents-velocity", version.ref = "packetevents" }
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+
+adventure-bom = { module = "net.kyori:adventure-bom", version.ref = "adventure" }
+adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+
+jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+
+# Testing — junit-jupiter is an aggregator (api + params + engine), so this
+# one line is enough to both write and run JUnit5 tests. The launcher is
+# separate — see the version comment above for why it's needed explicitly.
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockbukkit = { module = "org.mockbukkit.mockbukkit:mockbukkit-v26.2", version.ref = "mockbukkit" }
+
+# --- Gradle "plugin marker" artifacts -------------------------------------
+# Only consumed by build-logic itself (see build-logic/build.gradle.kts), so
+# its precompiled convention scripts can `id("...")`-apply these plugins.
+# Every plugin module then gets them for free via the convention, instead of
+# each plugin's build.gradle.kts re-declaring a plugin + version.
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-serialization-gradle-plugin = { module = "org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
+shadow-gradle-plugin = { module = "com.gradleup.shadow:com.gradleup.shadow.gradle.plugin", version.ref = "shadow" }
+run-paper-gradle-plugin = { module = "xyz.jpenilla.run-paper:xyz.jpenilla.run-paper.gradle.plugin", version.ref = "runPaper" }
+run-velocity-gradle-plugin = { module = "xyz.jpenilla.run-velocity:xyz.jpenilla.run-velocity.gradle.plugin", version.ref = "runVelocity" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight-userdev" }
+run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
+run-velocity = { id = "xyz.jpenilla.run-velocity", version.ref = "runVelocity" }
+kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
