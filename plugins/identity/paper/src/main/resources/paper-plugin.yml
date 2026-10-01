@@ -1,0 +1,15 @@
+name: 'KLRNBK-Identity'
+version: '@version@'
+main: nl.klrnbk.minecraft.plugins.identity.paper.MCPluginMain
+bootstrapper: nl.klrnbk.minecraft.plugins.identity.paper.MCPluginBootstrap
+
+api-version: '26.2'
+author: ijsKoud <daan@klrnbk.nl>
+description: Keeps track of all players that have ever joined the server.
+
+dependencies:
+  server:
+    KLRNBK-Shared-Runtime:
+      load: BEFORE
+      required: true
+      join-classpath: true
