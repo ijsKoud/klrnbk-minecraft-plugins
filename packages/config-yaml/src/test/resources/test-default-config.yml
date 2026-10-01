@@ -1,0 +1,10 @@
+use-proxy: true
+welcome-message: Welcome to the network
+database:
+  type: POSTGRESQL
+  host: db.internal
+  port: 5432
+  database: players
+  username: mcplugin
+  password: super-secret
+  maximum-pool-size: 15
