@@ -1,0 +1,36 @@
+# Whether a proxy like BungeeCord or Velocity is being used.
+# If you are using a proxy, set this to true.
+# And make sure that the database connection is the same as on the proxy server!!!
+use-proxy: true
+
+# The encryption key used to encrypt sensitive data such as IP addresses in the database.
+encryption-key: "{{GENERATED_ENCRYPTION_KEY_HERE}}"
+
+# Logs when a player joins or leaves the server.
+logs:
+  # Whether to log when a player joins or leaves the server.
+  enabled: true
+  # Whether to log the IP addresses of players when they join or leave the server.
+  log-ips: true
+  # The number of days after which logs will be purged.
+  purge-logs-after-days: 30
+
+# Database
+database:
+  # The database type to use. Supported values: MYSQL, POSTGRESQL, SQLITE
+  type: SQLITE
+
+  # The database host
+  host: localhost
+
+  # The database port
+  port: 3306
+
+  # The database name
+  database: database.db
+
+  # The database username
+  username: root
+
+  # The database password
+  password: password
