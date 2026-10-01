@@ -9,12 +9,14 @@
  * plugins are excluded.
  */
 // Resolved lazily (at task-graph time) because the child modules register
-// their shadowJar tasks after this root script has been configured.
+// their shadowJar tasks after this root script has been configured. Output
+// file collections (not Task objects) are used so the configuration cache can
+// serialize them; they carry the dependency on the producing task.
 val shadowJarTasks =
     provider {
         subprojects
             .filterNot { it.path.startsWith(":plugins:example-plugin") || it.path == ":plugins:gui:example" }
-            .mapNotNull { it.tasks.findByName("shadowJar") }
+            .mapNotNull { it.tasks.findByName("shadowJar")?.outputs?.files }
             .also { check(it.isNotEmpty()) { "No shadowJar tasks found; nothing to collect" } }
     }
 
