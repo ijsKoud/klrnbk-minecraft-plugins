@@ -1,0 +1,34 @@
+# Whether a proxy like BungeeCord or Velocity is being used.
+# If you are using a proxy, set this to true.
+# And make sure that the database connection is the same as on the proxy server!!!
+use-proxy: true
+
+# Customizable message for when a player gets kicked when the whitelist is active.
+kick-message: "<gold><bold>Dawn of Empires</bold></gold>\n\n<gray>The gates of the Empire are currently</gray> <gold><bold>closed.</bold></gold>\n\n<gray>Access to the server is restricted to</gray> <gold>whitelisted players</gold><gray>.</gray>\n\n<dark_gray>━━━━━━━━━━━━━━━━━━━━</dark_gray>\n\n<gold><bold>Forge Your Empire!</bold></gold>\n\n<gray>Think you should have access?</gray>\n<gray>Contact a server administrator.</gray>"
+
+# Logs when an action is performed
+logs:
+  # Whether to log when an action is performed
+  enabled: true
+  # The number of days after which logs will be purged.
+  purge-logs-after-days: 90
+
+# Database
+database:
+  # The database type to use. Supported values: MYSQL, POSTGRESQL, SQLITE
+  type: SQLITE
+
+  # The database host
+  host: localhost
+
+  # The database port
+  port: 3306
+
+  # The database name
+  database: database.db
+
+  # The database username
+  username: root
+
+  # The database password
+  password: password
