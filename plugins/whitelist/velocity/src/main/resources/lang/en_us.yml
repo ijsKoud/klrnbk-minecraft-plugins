@@ -1,0 +1,35 @@
+whitelist:
+  admin:
+    reload:
+      success: "Successfully reloaded plugin <bold>Whitelist</bold>."
+      failed: "<red>Failed to reload plugin <bold>Whitelist</bold>, check the console for details.</red>"
+  toggle:
+    enabled: "The whitelist is now <green><bold>enabled</bold></green>."
+    disabled: "The whitelist is now <red><bold>disabled</bold></red>."
+    already_enabled: "<yellow>The whitelist is already enabled.</yellow>"
+    already_disabled: "<yellow>The whitelist is already disabled.</yellow>"
+  player:
+    added: "<green><arg:0></green> has been added to the whitelist."
+    already_whitelisted: "<yellow><arg:0> is already whitelisted.</yellow>"
+    removed: "<green><arg:0></green> has been removed from the whitelist."
+    not_whitelisted: "<yellow><arg:0> is not whitelisted.</yellow>"
+    not_found: "<red>Player <arg:0> was not found. Players must have joined the network at least once.</red>"
+  actor:
+    unknown: "<red>You are not known to Identity yet, so this action can't be logged. Rejoin the network and try again.</red>"
+  action:
+    failed: "<red>Something went wrong while executing the command, check the console for details.</red>"
+  logs:
+    header:
+      player: "WHITELIST LOGS FOR <arg:0>"
+      settings: "WHITELIST SETTINGS LOGS"
+    entry:
+      added: "<green>[ADDED]</green> by <arg:0>"
+      removed: "<red>[REMOVED]</red> by <arg:0>"
+      enabled: "<green>[ENABLED]</green> by <arg:0>"
+      disabled: "<red>[DISABLED]</red> by <arg:0>"
+    empty: "<gray>No logs found.</gray>"
+    page: "PAGE <arg:0> OUT OF <arg:1>"
+    footer_previous: "<color:#FDBA74><b>PREVIOUS</b></color>"
+    footer_next: "<color:#FDBA74><b>NEXT</b></color>"
+    actor_console: "<gray>Console</gray>"
+    actor_unknown: "<gray>Unknown player</gray>"
