@@ -1,0 +1,6 @@
+name: KLRNBK-Shared-Runtime
+version: '@version@'
+main: nl.klrnbk.minecraft.plugins.runtime.paper.RuntimePaperPlugin
+api-version: '26.2'
+author: ijsKoud <daan@klrnbk.nl>
+description: Shared runtime libraries for KLRNBK Paper plugins.
