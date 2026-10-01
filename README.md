@@ -361,3 +361,18 @@ If any of these are stale by the time you build, the fix is usually just
 bumping that one version in `gradle/libs.versions.toml` — the rest of the
 stack (Shadow relocation, paper-plugin.yml templating, etc.) doesn't care
 what exact patch version these are pinned to.
+
+## CI/CD and releases
+
+- **CI** (`.github/workflows/ci.yml`) runs on every push and pull request: `./gradlew clean check build collectPluginJars`, then verifies the jars. Nothing is published; jars are uploaded as short-lived `plugin-build-<sha>` Actions artifacts.
+- **Release** (`.github/workflows/release.yml`) runs when a tag `vMAJOR.MINOR.PATCH` is pushed from `main`. It builds with `-Pversion=<tag without v>`, validates, generates `CHANGELOG.md` (`scripts/generate-changelog.sh`, grouped by Conventional Commit type) and publishes a GitHub Release with the `klrnbk-<plugin>-<module>-<version>.jar` files plus the changelog.
+
+Create a release (the first one is identical; with no earlier `v*` tag the changelog covers all history):
+
+```bash
+git checkout main && git pull
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Plugin jars are built with `./gradlew collectPluginJars` into `build/dist`. Local builds default to version `1.0.0`; override with `-Pversion=x.y.z`.

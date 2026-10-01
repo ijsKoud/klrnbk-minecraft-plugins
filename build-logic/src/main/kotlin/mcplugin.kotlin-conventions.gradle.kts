@@ -35,7 +35,13 @@ group =
             baseGroup
         }
     }
-version = "1.0.0"
+// Default version for local builds. CI/release override it with
+// `-Pversion=1.4.0` (the release workflow derives it from the v1.4.0 tag);
+// an unset -Pversion shows up as Gradle's "unspecified" placeholder.
+version =
+    (findProperty("version")?.toString())
+        ?.takeIf { it.isNotBlank() && it != "unspecified" }
+        ?: "1.0.0"
 
 // Every module's jar otherwise defaults to just its directory name —
 // paper-1.0.0.jar, velocity-1.0.0.jar, common-1.0.0.jar — identical across
@@ -53,9 +59,9 @@ extensions.configure<BasePluginExtension> {
         run {
             val segments = project.path.removePrefix(":").split(":")
             if (segments.size >= 2 && segments[0] == "plugins") {
-                "${segments[1]}-${project.name}"
+                "klrnbk-${segments[1]}-${project.name}"
             } else {
-                project.name
+                "klrnbk-${project.name}"
             }
         },
     )
