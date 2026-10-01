@@ -1,0 +1,84 @@
+package nl.klrnbk.minecraft.plugins.whitelist.common.facades
+
+import com.google.inject.Inject
+import com.google.inject.Singleton
+import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
+import nl.klrnbk.minecraft.plugins.whitelist.api.WhitelistApi
+import nl.klrnbk.minecraft.plugins.whitelist.common.services.status.ActiveStatusService
+import nl.klrnbk.minecraft.plugins.whitelist.common.services.whitelist.PlayerWhitelistService
+import java.util.UUID
+import kotlin.uuid.toJavaUuid
+import kotlin.uuid.toKotlinUuid
+
+enum class WhitelistActionResult {
+    /** The action was performed. */
+    SUCCESS,
+
+    /** Nothing changed, the target already was in the requested state. */
+    NO_CHANGE,
+
+    /** No player with the given name is known to Identity. */
+    PLAYER_NOT_FOUND,
+
+    /** The command sender is not known to Identity, so the action can't be attributed to them. */
+    ACTOR_NOT_FOUND,
+}
+
+@Singleton
+class WhitelistCommandFacade
+    @Inject
+    constructor(
+        private val playerWhitelistService: PlayerWhitelistService,
+        private val activeStatusService: ActiveStatusService,
+    ) {
+        fun addPlayer(
+            playerName: String,
+            actorPlayerId: UUID?,
+        ): WhitelistActionResult =
+            perform(playerName, actorPlayerId) { player, actor ->
+                playerWhitelistService.addPlayerToWhitelist(player.toKotlinUuid(), actor.toKotlinUuid())
+            }
+
+        fun removePlayer(
+            playerName: String,
+            actorPlayerId: UUID?,
+        ): WhitelistActionResult =
+            perform(playerName, actorPlayerId) { player, actor ->
+                playerWhitelistService.removePlayerFromWhitelist(player.toKotlinUuid(), actor.toKotlinUuid())
+            }
+
+        fun setWhitelistEnabled(
+            enabled: Boolean,
+            actorPlayerId: UUID?,
+        ): WhitelistActionResult {
+            val actor = resolveActorIdentityId(actorPlayerId) ?: return WhitelistActionResult.ACTOR_NOT_FOUND
+            return activeStatusService.setWhitelistEnabled(enabled, actor.toKotlinUuid()).toResult()
+        }
+
+        /**
+         * Identity ID of a player by name, null if Identity doesn't know the player.
+         */
+        fun findPlayerIdentityId(playerName: String): UUID? = IdentityProvider.get().getPlayerFromName(playerName)?.id
+
+        /**
+         * @param actorPlayerId The Minecraft UUID of the command sender, null for the console.
+         * @return the Identity ID to attribute the action to, null if the sender is unknown to Identity.
+         */
+        private fun resolveActorIdentityId(actorPlayerId: UUID?): UUID? {
+            if (actorPlayerId == null) return WhitelistApi.CONSOLE_ACTOR_ID
+            return IdentityProvider.get().getPlayerFromUuid(actorPlayerId)?.id
+        }
+
+        private fun perform(
+            playerName: String,
+            actorPlayerId: UUID?,
+            action: (player: UUID, actor: UUID) -> Boolean,
+        ): WhitelistActionResult {
+            val actor = resolveActorIdentityId(actorPlayerId) ?: return WhitelistActionResult.ACTOR_NOT_FOUND
+            val player = findPlayerIdentityId(playerName) ?: return WhitelistActionResult.PLAYER_NOT_FOUND
+
+            return action(player, actor).toResult()
+        }
+
+        private fun Boolean.toResult() = if (this) WhitelistActionResult.SUCCESS else WhitelistActionResult.NO_CHANGE
+    }
