@@ -14,7 +14,9 @@ evaluationDependsOnChildren()
  */
 val shadowJarTasks =
     subprojects.filterNot { it.path.startsWith(":plugins:example-plugin") || it.path == ":plugins:gui:example" }
-        .mapNotNull { it.tasks.findByName("shadowJar") as? org.gradle.api.tasks.bundling.Jar }
+        .mapNotNull { it.tasks.findByName("shadowJar") }
+
+check(shadowJarTasks.isNotEmpty()) { "No shadowJar tasks found; nothing to collect" }
 
 tasks.register<Sync>("collectPluginJars") {
     group = "distribution"
