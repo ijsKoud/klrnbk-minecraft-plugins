@@ -20,6 +20,6 @@ tasks.register<Sync>("collectPluginJars") {
     group = "distribution"
     description = "Copies all final plugin jars into build/dist."
     dependsOn(shadowJarTasks)
-    from(shadowJarTasks.map { it.archiveFile })
+    shadowJarTasks.forEach { from(it) }
     into(layout.buildDirectory.dir("dist"))
 }
