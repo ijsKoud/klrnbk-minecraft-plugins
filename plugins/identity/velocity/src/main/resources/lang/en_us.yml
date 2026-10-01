@@ -1,0 +1,36 @@
+identity:
+  admin:
+    reload:
+      success: "Successfully reloaded plugin <bold>Identity</bold>."
+
+  player:
+    common:
+      online: "<green>[ONLINE]</green>"
+      offline: "<red>[OFFLINE]</red>"
+      available: "<green>[AVAILABLE]</green>"
+      unavailable: "<red>[UNAVAILABLE]</red>"
+      leave_server: "<red>[LEAVE]</red>"
+      join_server: "<green>[JOIN]</green>"
+      connect_to_proxy: "<aqua>[CONNECT]</aqua>"
+      disconnect_from_proxy: "<dark_purple>[DISCONNECT]</dark_purple>"
+      name: "Name"
+    list:
+      header: "PLAYER LIST"
+      page: "PAGE <arg:0> OUT OF <arg:1>"
+      player_hover_text: "Click for more information about <arg:0>"
+      player_entry: "- <arg:0> <arg:1>"
+      footer_previous: "<color:#FDBA74><b>PREVIOUS</b></color>"
+      footer_next: "<color:#FDBA74><b>NEXT</b></color>"
+    info:
+      header: "PLAYER INFO"
+      player_uuid: "Player UUID"
+      internal_uuid: "Internal UUID"
+      first_join: "First Join"
+      status: "Status"
+      logs: "Logs"
+      not_found: "Player not found."
+    logs:
+      header: "PLAYER LOGS"
+      action: "Action"
+      ip: "Player IP"
+      server: "Server"
