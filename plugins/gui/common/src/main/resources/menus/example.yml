@@ -1,0 +1,59 @@
+# Example menu, written on first start. The file name is the menu id: this one is "example".
+# Open it with /klrnbkgui open example, or with the command below. Edit, then /klrnbkgui reload.
+#
+# Placeholders in item names, lore and action text: {player} {uuid} {online} {server} {platform}
+title: "<dark_blue>KLRNBK <gray>Menu"
+rows: 3                      # 1-6 for type "chest" (default); or type: hopper / dispenser
+commands: [guiexample]       # extra commands that open this menu
+permission: klrnbk.gui.example   # remove to let everyone open it
+refresh_seconds: 10          # re-render every 10 s while somebody is looking (keeps {online} current)
+
+filler:                      # goes into every slot no item claims
+  material: gray_stained_glass_pane
+  name: " "
+  hide_tooltip: true
+
+items:
+  spawn:
+    slot: 10
+    material: diamond
+    name: "<aqua>Spawn"
+    lore:
+      - "<gray>Teleport to spawn"
+      - ""
+      - "<yellow>Click to teleport"
+    actions:                 # runs on left/right/shift clicks
+      - server_command: spawn
+      - close
+
+  info:
+    slot: 13
+    material: paper
+    name: "<white>Hello, {player}"
+    lore:
+      - "<gray>Online players: <white>{online}"
+      - "<gray>You are on: <white>{server} <gray>({platform})"
+
+  lobby:
+    slot: 16
+    material: ender_pearl
+    name: "<light_purple>Lobby"
+    lore: ["<gray>Left click: connect", "<gray>Right click: connect and run /spawn"]
+    on:                      # per click type: left right shift_left shift_right middle number_key offhand drop control_drop double_click
+      left:
+        - connect: lobby
+      right:
+        - server_command: {command: spawn, server: lobby}
+
+  star:
+    slot: 22
+    material: nether_star
+    name: "<gold>Custom model"
+    glow: true
+    custom_model_data: 1
+    platform:
+      bedrock:               # override any field for one platform
+        custom_model_data: 0 # 0 removes the value
+        lore: ["<gray>Plain star on Bedrock"]
+    actions:
+      - clickable_message: {text: "<yellow>[Click to prepare /warp]", suggest_command: "warp"}
