@@ -36,10 +36,11 @@ class PlayerLogsCommandFacade
         ): PlayerLogsResult? {
             val config = configService.getConfig()
             val player = playerDetailsService.getPlayerDetailsByName(playerName) ?: return null
-            val logs = playerConnectionLogsService.getLogsForPlayer(player.id.toKotlinUuid(), page, ITEMS_PER_PAGE, config.encryptionKey!!)
+            // The command counts pages from 1, the service from 0.
+            val logs = playerConnectionLogsService.getLogsForPlayer(player.id.toKotlinUuid(), page - 1, ITEMS_PER_PAGE, config.encryptionKey!!)
 
             val totalLogsCount = playerConnectionLogsService.getLogsCountForPlayer(player.id.toKotlinUuid())
-            val totalPages = ceil(totalLogsCount.toDouble() / ITEMS_PER_PAGE).toInt()
+            val totalPages = ceil(totalLogsCount.toDouble() / ITEMS_PER_PAGE).toInt().coerceAtLeast(1)
 
             return PlayerLogsResult(
                 player = player,

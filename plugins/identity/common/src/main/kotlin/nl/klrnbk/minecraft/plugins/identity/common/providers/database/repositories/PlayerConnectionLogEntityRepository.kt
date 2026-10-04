@@ -9,6 +9,7 @@ import nl.klrnbk.minecraft.packages.database.QueryPagination
 import nl.klrnbk.minecraft.plugins.identity.common.providers.database.models.PlayerConnectionLogEntity
 import nl.klrnbk.minecraft.plugins.identity.common.providers.database.models.PlayerConnectionLogEntityTable
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -36,9 +37,9 @@ class PlayerConnectionLogEntityRepository
             execute {
                 PlayerConnectionLogEntity
                     .find { PlayerConnectionLogEntityTable.playerId eq playerId }
+                    .orderBy(PlayerConnectionLogEntityTable.timestamp to SortOrder.DESC)
                     .limit(pagination.itemsPerPage)
-                    .offset((pagination.page * pagination.itemsPerPage).toLong())
-                    .sortedByDescending { PlayerConnectionLogEntityTable.timestamp }
+                    .offset(pagination.page.toLong() * pagination.itemsPerPage)
                     .toList()
             }
 
