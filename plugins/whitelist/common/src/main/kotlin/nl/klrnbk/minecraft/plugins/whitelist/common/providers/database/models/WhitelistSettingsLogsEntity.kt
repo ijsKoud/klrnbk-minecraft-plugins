@@ -11,6 +11,11 @@ object WhitelistSettingsLogsEntityTable : UuidTable("whitelist_settings_logs") {
     val isWhitelistEnabled = bool("is_whitelist_enabled").default(false)
     val timestamp = timestamp("timestamp")
     val playerIdentityId = uuid("player_identity_uuid")
+
+    init {
+        // Seek pagination of the settings logs, and the log purge.
+        index(false, timestamp)
+    }
 }
 
 class WhitelistSettingsLogsEntity(

@@ -52,6 +52,9 @@ toggle is only applied once its log entry is stored. Logs older than `logs.purge
 The actor of an action is the Identity ID of the sender. Chat output always shows names (`Console` for the console,
 `Unknown player` when Identity doesn't know the actor), never IDs.
 
+Lists and logs use seek pagination (see `packages/database`) on indexed columns, so deep pages are as cheap as
+the first one.
+
 ## Configuration
 
 `plugins/klrnbk-whitelist/config.yml`:

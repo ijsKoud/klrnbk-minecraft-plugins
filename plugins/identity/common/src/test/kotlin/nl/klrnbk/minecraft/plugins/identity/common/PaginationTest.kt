@@ -84,4 +84,34 @@ class PaginationTest {
         assertEquals("2", playerLogs.getPlayerLogs("Alice", 1)!!.totalPages)
         assertEquals(1, playerLogs.getPlayerLogs("Alice", 2)!!.logs.size)
     }
+
+    // Deep pages
+
+    @Test
+    fun `deep player list pages are right when jumped to and when walked to`() {
+        addPlayers(95)
+        val names = (0 until 95).map { "Player%02d".format(it) }
+
+        // Cold: nothing is remembered about where page 10 starts.
+        assertEquals(names.drop(90), playerList.getPlayerList(10).players.map { it.name })
+        assertEquals("10", playerList.getPlayerList(10).totalPages)
+
+        val walked = (1..10).flatMap { playerList.getPlayerList(it).players.map { player -> player.name } }
+
+        assertEquals(names, walked)
+        assertEquals(names.subList(40, 50), playerList.getPlayerList(5).players.map { it.name })
+    }
+
+    @Test
+    fun `player logs can be walked page by page without gaps or repeats`() {
+        val player = env.playerDetailsService.upsert(Uuid.random(), "Alice")
+        addLogs(Uuid.parse(player.playerId.toString()), 55)
+
+        val pages = (1..6).map { playerLogs.getPlayerLogs("Alice", it)!!.logs.map { log -> log.server.name } }
+
+        assertEquals(listOf(10, 10, 10, 10, 10, 5), pages.map { it.size })
+        assertEquals((54 downTo 0).map { "name$it" }, pages.flatten())
+        // Going back works as well.
+        assertEquals(pages[2], playerLogs.getPlayerLogs("Alice", 3)!!.logs.map { it.server.name })
+    }
 }

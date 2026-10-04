@@ -178,4 +178,51 @@ class WhitelistServicesTest {
         assertEquals(0, deleted)
         assertEquals(1, env.logsService.getPlayerLogsCount(player))
     }
+
+    @Test
+    fun `whitelisted players can be paged through, newest first`() {
+        val players = (0 until 35).map { Uuid.random() }
+        players.forEach {
+            env.playerWhitelistService.addPlayerToWhitelist(it, actor)
+            Thread.sleep(2)
+        }
+        env.playerWhitelistService.removePlayerFromWhitelist(players[0], actor)
+
+        val pages = (0..3).map { page -> env.playerWhitelistService.getWhitelistedPlayers(QueryPagination(page, 10)) }
+
+        assertEquals(listOf(10, 10, 10, 4), pages.map { it.size })
+        assertEquals(players.drop(1).reversed().map { it.toString() }, pages.flatten().map { it.playerId.toString() })
+        assertEquals(34, env.playerWhitelistService.getWhitelistedPlayersCount())
+        // Jumping straight to a deep page agrees with walking there.
+        assertEquals(pages[3].map { it.playerId }, env.playerWhitelistService.getWhitelistedPlayers(QueryPagination(3, 10)).map { it.playerId })
+    }
+
+    @Test
+    fun `settings logs can be paged through, newest first`() {
+        repeat(25) {
+            env.activeStatusService.setWhitelistEnabled(it % 2 == 0, actor)
+            Thread.sleep(2)
+        }
+
+        val pages = (0..2).map { env.logsService.getSettingsLogs(QueryPagination(it, 10)) }
+
+        assertEquals(listOf(10, 10, 5), pages.map { it.size })
+        assertEquals(25, pages.flatten().map { it.id }.toSet().size)
+        assertEquals((0 until 25).reversed().map { it % 2 == 0 }, pages.flatten().map { it.isWhitelistEnabled })
+    }
+
+    @Test
+    fun `player logs of deep pages are right when jumped to`() {
+        repeat(25) {
+            env.playerWhitelistService.addPlayerToWhitelist(player, actor)
+            env.playerWhitelistService.removePlayerFromWhitelist(player, actor)
+            Thread.sleep(2)
+        }
+
+        val third = env.logsService.getPlayerLogs(player, QueryPagination(page = 4, itemsPerPage = 10))
+
+        // 50 logs, newest first: page index 4 holds the 41st to 50th newest.
+        assertEquals(10, third.size)
+        assertEquals((0 until 50).reversed().map { it % 2 == 0 }.drop(40), third.map { it.isWhitelisted })
+    }
 }

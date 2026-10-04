@@ -4,10 +4,12 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import nl.klrnbk.minecraft.packages.database.BaseRepository
 import nl.klrnbk.minecraft.packages.database.DatabaseContext
+import nl.klrnbk.minecraft.packages.database.KeysetPaginator
 import nl.klrnbk.minecraft.packages.database.QueryPagination
 import nl.klrnbk.minecraft.plugins.identity.common.providers.database.models.PlayerEntity
 import nl.klrnbk.minecraft.plugins.identity.common.providers.database.models.PlayerEntityTable
 import org.jetbrains.exposed.v1.core.LikePattern
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
@@ -22,6 +24,18 @@ class PlayerEntityRepository
     constructor(
         context: DatabaseContext,
     ) : BaseRepository(context) {
+        // Names are case-insensitive and ASCII, so Kotlin's and the database's lowercase agree.
+        private val paginator =
+            KeysetPaginator(
+                PlayerEntity,
+                PlayerEntityTable,
+                PlayerEntityTable.name.lowerCase(),
+                SortOrder.ASC,
+                { it.name.lowercase() },
+                { it },
+                { it },
+            )
+
         fun count(): Long =
             execute {
                 PlayerEntity
@@ -75,14 +89,17 @@ class PlayerEntityRepository
                     .map { it[PlayerEntityTable.name] }
             }
 
+        /**
+         * @param pagination The page to read, counted from 0. Sorted by name.
+         */
         fun findAll(pagination: QueryPagination): List<PlayerEntity> =
             execute {
-                PlayerEntity
-                    .all()
-                    .orderBy(PlayerEntityTable.name.lowerCase() to SortOrder.ASC)
-                    .limit(pagination.itemsPerPage)
-                    .offset(pagination.page.toLong() * pagination.itemsPerPage)
-                    .toList()
+                paginator.findPage(
+                    scope = "all",
+                    filter = Op.TRUE,
+                    page = pagination.page + 1,
+                    size = pagination.itemsPerPage,
+                )
             }
 
         fun updateNameByPlayerId(
