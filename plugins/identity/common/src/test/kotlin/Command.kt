@@ -38,6 +38,14 @@ class IdentityPluginCommonFacadeTest {
             override fun getPlayerFromUuid(uuid: UUID): IdentityPlayer? = null
             override fun getPlayerFromId(id: UUID): IdentityPlayer? = null
             override fun getPlayerFromName(name: String): IdentityPlayer? = null
+
+            override fun getPlayersFromIds(ids: Collection<UUID>): List<IdentityPlayer> = emptyList()
+
+            override fun getPlayerNames(prefix: String, limit: Int): List<String> = emptyList()
+
+            override fun getAllPlayers(page: Int, itemsPerPage: Int): List<IdentityPlayer> = emptyList()
+
+            override fun getPlayerCount(): Long = 0
         }
 
         IdentityProvider.unregister()

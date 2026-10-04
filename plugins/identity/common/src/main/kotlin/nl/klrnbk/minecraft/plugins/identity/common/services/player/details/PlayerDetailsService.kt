@@ -39,6 +39,16 @@ class PlayerDetailsService
             return IdentityPlayer.fromEntity(playerEntity, isPlayerOnline = isPlayerOnline)
         }
 
+        fun getPlayerDetailsByIds(ids: Collection<Uuid>): List<IdentityPlayer> =
+            playerEntityRepository.findAllByIds(ids).map { playerEntity ->
+                IdentityPlayer.fromEntity(playerEntity, isPlayerOnline = onlineStatusProvider.isPlayerOnline(playerEntity.playerId))
+            }
+
+        fun getPlayerNamesByPrefix(
+            prefix: String,
+            limit: Int,
+        ): List<String> = playerEntityRepository.findNamesByPrefix(prefix, limit)
+
         fun getAllPlayerDetails(
             page: Int,
             itemsPerPage: Int,

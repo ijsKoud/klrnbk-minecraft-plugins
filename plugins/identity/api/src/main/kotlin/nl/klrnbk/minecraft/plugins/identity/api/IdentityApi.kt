@@ -25,8 +25,50 @@ interface IdentityApi {
     /**
      * Get a player by their name.
      *
-     * @param name The name of the player.
+     * @param name The name of the player, case-insensitive. If several players ever had this name, the one that joined last is returned.
      * @return The player with the given name, or null if no such player exists.
      */
     fun getPlayerFromName(name: String): IdentityPlayer?
+
+    /**
+     * Get multiple players by their Identity ID at once.
+     * Prefer this over calling [getPlayerFromId] in a loop.
+     *
+     * @param ids The Identity IDs of the players (NOT the Minecraft UUIDs).
+     * @return The players that exist, in no particular order. IDs that don't belong to a player are skipped.
+     */
+    fun getPlayersFromIds(ids: Collection<UUID>): List<IdentityPlayer>
+
+    /**
+     * Get the names of players, for example for command suggestions.
+     *
+     * @param prefix Only names starting with this prefix (case-insensitive) are returned. Empty returns all names.
+     * @param limit The maximum number of names to return.
+     * @return The matching names, sorted alphabetically.
+     */
+    fun getPlayerNames(
+        prefix: String = "",
+        limit: Int = DEFAULT_NAME_LIMIT,
+    ): List<String>
+
+    /**
+     * Get every player known to Identity, sorted by name.
+     *
+     * @param page The page to retrieve, starting from 0.
+     * @param itemsPerPage The number of players per page.
+     */
+    fun getAllPlayers(
+        page: Int = 0,
+        itemsPerPage: Int = DEFAULT_ITEMS_PER_PAGE,
+    ): List<IdentityPlayer>
+
+    /**
+     * Get the number of players known to Identity.
+     */
+    fun getPlayerCount(): Long
+
+    companion object {
+        const val DEFAULT_NAME_LIMIT = 100
+        const val DEFAULT_ITEMS_PER_PAGE = 25
+    }
 }
