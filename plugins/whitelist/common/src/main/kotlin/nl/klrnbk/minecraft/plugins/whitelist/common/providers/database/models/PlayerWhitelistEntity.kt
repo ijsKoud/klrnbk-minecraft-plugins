@@ -12,6 +12,11 @@ object PlayerWhitelistEntityTable : UuidTable("player_whitelists") {
     val isWhitelisted = bool("is_whitelisted")
     val lastUpdatedAt = timestamp("last_updated_at")
     val actorIdentityId = uuid("actor_identity_id")
+
+    init {
+        // Seek pagination of the whitelisted players.
+        index(false, isWhitelisted, lastUpdatedAt)
+    }
 }
 
 class PlayerWhitelistEntity(

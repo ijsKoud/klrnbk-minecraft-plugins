@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
-import com.velocitypowered.api.proxy.ProxyServer
 import io.mockk.every
 import io.mockk.mockk
 import net.kyori.adventure.text.Component
@@ -17,9 +16,10 @@ import nl.klrnbk.minecraft.plugins.whitelist.common.WhitelistTestEnvironment
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.AdminCommandsFacade
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistApiFacade
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistCommandFacade
+import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistListCommandFacade
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistLogsCommandFacade
-import nl.klrnbk.minecraft.plugins.whitelist.velocity.identityPlayer
-import nl.klrnbk.minecraft.plugins.whitelist.velocity.registerIdentity
+import nl.klrnbk.minecraft.plugins.whitelist.common.identityPlayer
+import nl.klrnbk.minecraft.plugins.whitelist.common.registerIdentity
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -44,7 +44,7 @@ class WhitelistCommandTest {
                 WhitelistCommandFacade(env.playerWhitelistService, env.activeStatusService),
                 AdminCommandsFacade(NOPLogger.NOP_LOGGER, env.configService, env.activeStatusService, env.databaseService),
                 WhitelistLogsCommandFacade(env.logsService),
-                mockk<ProxyServer>(relaxed = true),
+                WhitelistListCommandFacade(env.playerWhitelistService),
                 NOPLogger.NOP_LOGGER,
                 env.dataDirectory,
             )
@@ -81,7 +81,14 @@ class WhitelistCommandTest {
             .key()
 
     private val allPermissions =
-        arrayOf(Permissions.TOGGLE_WHITELIST, Permissions.ADD_PLAYER, Permissions.REMOVE_PLAYER, Permissions.VIEW_LOGS, Permissions.RELOAD_PLUGIN)
+        arrayOf(
+            Permissions.TOGGLE_WHITELIST,
+            Permissions.ADD_PLAYER,
+            Permissions.REMOVE_PLAYER,
+            Permissions.VIEW_LOGS,
+            Permissions.VIEW_LIST,
+            Permissions.RELOAD_PLUGIN,
+        )
 
     // Permissions
 
@@ -98,6 +105,7 @@ class WhitelistCommandTest {
             "whitelist reload",
             "whitelist logs settings",
             "whitelist logs player Alice",
+            "whitelist list",
         ).forEach {
             assertThrows(CommandSyntaxException::class.java, { dispatcher.execute(it, source) }, it)
         }
@@ -222,6 +230,83 @@ class WhitelistCommandTest {
         assertTrue(api.isWhitelistEnabled())
     }
 
+    // List
+
+    private fun suggestions(input: String, source: CommandSource) =
+        dispatcher.getCompletionSuggestions(dispatcher.parse(input, source)).get().list.map { it.text }
+
+    @Test
+    fun `list needs its own permission`() {
+        assertThrows(CommandSyntaxException::class.java) { dispatcher.execute("whitelist list", console(Permissions.VIEW_LOGS)) }
+    }
+
+    @Test
+    fun `list shows the whitelisted players by name with who added them`() {
+        api.addPlayerToWhitelist(alice.id, admin.id)
+
+        assertEquals(0, dispatcher.execute("whitelist list", console(Permissions.VIEW_LIST)))
+
+        val keys = translatableKeys(sent.last())
+        assertEquals(LanguageKeys.LIST_HEADER, keys.first())
+        assertEquals(1, keys.count { it == LanguageKeys.LIST_ENTRY })
+        val text = plainText(sent.last())
+        assertTrue(text.contains(alice.name))
+        assertTrue(text.contains(admin.name))
+        assertFalse(text.contains(alice.id.toString()))
+    }
+
+    @Test
+    fun `list leaves out removed players and shows the console as the console`() {
+        api.addPlayerToWhitelist(alice.id, WhitelistApi.CONSOLE_ACTOR_ID)
+        api.addPlayerToWhitelist(admin.id, WhitelistApi.CONSOLE_ACTOR_ID)
+        api.removePlayerFromWhitelist(admin.id, WhitelistApi.CONSOLE_ACTOR_ID)
+
+        dispatcher.execute("whitelist list", console(Permissions.VIEW_LIST))
+
+        assertEquals(1, translatableKeys(sent.last()).count { it == LanguageKeys.LIST_ENTRY })
+        assertTrue(translatableKeys(sent.last()).contains(LanguageKeys.LOGS_ACTOR_CONSOLE))
+        assertFalse(plainText(sent.last()).contains(admin.name))
+    }
+
+    @Test
+    fun `list is paginated and reports an empty whitelist`() {
+        val source = console(Permissions.VIEW_LIST)
+        dispatcher.execute("whitelist list", source)
+        assertTrue(translatableKeys(sent.last()).contains(LanguageKeys.LIST_EMPTY))
+
+        val fake = IdentityProvider.get() as nl.klrnbk.minecraft.plugins.whitelist.common.FakeIdentityApi
+        repeat(12) {
+            val player = identityPlayer("Player$it")
+            fake.players.add(player)
+            api.addPlayerToWhitelist(player.id, admin.id)
+        }
+
+        dispatcher.execute("whitelist list", source)
+        assertEquals(10, translatableKeys(sent.last()).count { it == LanguageKeys.LIST_ENTRY })
+        dispatcher.execute("whitelist list 2", source)
+        assertEquals(2, translatableKeys(sent.last()).count { it == LanguageKeys.LIST_ENTRY })
+    }
+
+    // Suggestions
+
+    @Test
+    fun `add suggests players from identity even when they are offline`() {
+        assertEquals(listOf("Admin", "Alice"), suggestions("whitelist add ", console(Permissions.ADD_PLAYER)).sorted())
+        assertEquals(listOf("Alice"), suggestions("whitelist add al", console(Permissions.ADD_PLAYER)))
+    }
+
+    @Test
+    fun `remove only suggests whitelisted players`() {
+        api.addPlayerToWhitelist(alice.id, admin.id)
+
+        assertEquals(listOf("Alice"), suggestions("whitelist remove ", console(Permissions.REMOVE_PLAYER)))
+    }
+
+    @Test
+    fun `log commands suggest players from identity`() {
+        assertEquals(listOf("Admin", "Alice"), suggestions("whitelist logs player ", console(Permissions.VIEW_LOGS)).sorted())
+    }
+
     // Logs
 
     // Translatable arguments (the actor and player names) aren't children, so they are walked explicitly.
@@ -325,6 +410,7 @@ class WhitelistCommandTest {
         assertEquals(0, dispatcher.execute("whitelist add Alice", source))
         assertEquals(0, dispatcher.execute("whitelist remove Alice", source))
         assertEquals(0, dispatcher.execute("whitelist logs settings", source))
+        assertEquals(0, dispatcher.execute("whitelist list", source))
         assertEquals(0, dispatcher.execute("whitelist reload", source))
     }
 }

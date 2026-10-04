@@ -15,6 +15,12 @@ object PlayerConnectionLogEntityTable : UuidTable("player_connection_logs") {
     val serverName = varchar("server_name", 255)
     val serverIp = varchar("server_ip", 255)
     val playerIp = varchar("player_ip", 255).nullable()
+
+    init {
+        // Seek pagination of a player's logs, and the log purge.
+        index(false, playerId, timestamp)
+        index(false, timestamp)
+    }
 }
 
 class PlayerConnectionLogEntity(

@@ -65,6 +65,12 @@ proxy. Start with [`plugins/gui/README.md`](plugins/gui/README.md); background i
 [`RESEARCH.md`](plugins/gui/RESEARCH.md), [`IMPLEMENTATION.md`](plugins/gui/IMPLEMENTATION.md) and
 [`TESTING.md`](plugins/gui/TESTING.md).
 
+## Whitelist and Identity
+
+[`plugins/identity`](plugins/identity/README.md) assigns every player a stable ID and exposes an API to look
+players up. [`plugins/whitelist`](plugins/whitelist/README.md) is a proxy-wide whitelist on top of it, with
+commands, logging and its own API.
+
 ## Why `build-logic`
 
 With one plugin, each `build.gradle.kts` having its own shading/manifest/

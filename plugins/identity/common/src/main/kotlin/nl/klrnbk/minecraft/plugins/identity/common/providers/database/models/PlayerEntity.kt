@@ -12,6 +12,12 @@ object PlayerEntityTable : UuidTable("players") {
     val name = varchar("player_name", MINECRAFT_USERNAME_MAX_LENGTH)
     val playerId = uuid("player_id")
     val firstJoined = timestamp("first_joined")
+
+    init {
+        // Looked up by Minecraft UUID on every login, and by name.
+        index(false, playerId)
+        index(false, name)
+    }
 }
 
 class PlayerEntity(

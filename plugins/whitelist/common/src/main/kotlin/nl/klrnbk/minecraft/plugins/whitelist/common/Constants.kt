@@ -15,6 +15,7 @@ object Permissions {
     const val ADD_PLAYER = "klrnbk.whitelist.add"
     const val REMOVE_PLAYER = "klrnbk.whitelist.remove"
     const val VIEW_LOGS = "klrnbk.whitelist.logs"
+    const val VIEW_LIST = "klrnbk.whitelist.list"
 }
 
 object LanguageKeys {
@@ -43,4 +44,10 @@ object LanguageKeys {
     const val LOGS_FOOTER_NEXT = "whitelist.logs.footer_next"
     const val LOGS_ACTOR_CONSOLE = "whitelist.logs.actor_console"
     const val LOGS_ACTOR_UNKNOWN = "whitelist.logs.actor_unknown"
+    const val LIST_HEADER = "whitelist.list.header"
+    const val LIST_ENTRY = "whitelist.list.entry"
+    const val LIST_EMPTY = "whitelist.list.empty"
+    const val LIST_PAGE = "whitelist.list.page"
+    const val LIST_FOOTER_PREVIOUS = "whitelist.list.footer_previous"
+    const val LIST_FOOTER_NEXT = "whitelist.list.footer_next"
 }

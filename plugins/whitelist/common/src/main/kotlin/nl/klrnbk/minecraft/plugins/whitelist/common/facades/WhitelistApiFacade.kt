@@ -6,6 +6,7 @@ import nl.klrnbk.minecraft.packages.database.QueryPagination
 import nl.klrnbk.minecraft.plugins.whitelist.api.WhitelistApi
 import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistLog
 import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistSettingsLog
+import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistedPlayer
 import nl.klrnbk.minecraft.plugins.whitelist.common.services.logs.WhitelistLogsService
 import nl.klrnbk.minecraft.plugins.whitelist.common.services.status.ActiveStatusService
 import nl.klrnbk.minecraft.plugins.whitelist.common.services.whitelist.PlayerWhitelistService
@@ -38,6 +39,13 @@ class WhitelistApiFacade
             identityId: UUID,
             actorIdentityId: UUID,
         ): Boolean = playerWhitelistService.removePlayerFromWhitelist(identityId.toKotlinUuid(), actorIdentityId.toKotlinUuid())
+
+        override fun getWhitelistedPlayers(
+            page: Int,
+            itemsPerPage: Int,
+        ): List<WhitelistedPlayer> = playerWhitelistService.getWhitelistedPlayers(pagination(page, itemsPerPage))
+
+        override fun getWhitelistedPlayersCount(): Long = playerWhitelistService.getWhitelistedPlayersCount()
 
         override fun getPlayerLogs(
             identityId: UUID,

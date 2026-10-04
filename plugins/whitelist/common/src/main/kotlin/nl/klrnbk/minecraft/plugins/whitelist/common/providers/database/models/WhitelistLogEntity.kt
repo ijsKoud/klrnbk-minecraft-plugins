@@ -12,6 +12,12 @@ object WhitelistLogEntityTable : UuidTable("whitelist_logs") {
     val isWhitelisted = bool("is_whitelisted")
     val timestamp = timestamp("last_updated_at")
     val actorIdentityId = uuid("actor_identity_id")
+
+    init {
+        // Seek pagination of a player's logs, and the log purge.
+        index(false, identityId, timestamp)
+        index(false, timestamp)
+    }
 }
 
 class WhitelistLogEntity(

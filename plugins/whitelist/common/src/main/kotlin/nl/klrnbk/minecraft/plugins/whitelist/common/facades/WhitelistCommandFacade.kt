@@ -2,6 +2,7 @@ package nl.klrnbk.minecraft.plugins.whitelist.common.facades
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import nl.klrnbk.minecraft.packages.database.QueryPagination
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import nl.klrnbk.minecraft.plugins.whitelist.api.WhitelistApi
 import nl.klrnbk.minecraft.plugins.whitelist.common.services.status.ActiveStatusService
@@ -56,6 +57,26 @@ class WhitelistCommandFacade
         }
 
         /**
+         * Names of the players known to Identity that start with [prefix], for `/whitelist add` and the log commands.
+         */
+        fun suggestPlayerNames(prefix: String): List<String> = IdentityProvider.get().getPlayerNames(prefix, MAX_SUGGESTIONS)
+
+        /**
+         * Names of the whitelisted players that start with [prefix], for `/whitelist remove`.
+         */
+        fun suggestWhitelistedPlayerNames(prefix: String): List<String> {
+            val whitelisted = playerWhitelistService.getWhitelistedPlayers(QueryPagination(page = 0, itemsPerPage = WHITELIST_SUGGESTION_SCAN))
+
+            return IdentityProvider
+                .get()
+                .getPlayersFromIds(whitelisted.map { it.playerId })
+                .map { it.name }
+                .filter { it.startsWith(prefix, ignoreCase = true) }
+                .sorted()
+                .take(MAX_SUGGESTIONS)
+        }
+
+        /**
          * Identity ID of a player by name, null if Identity doesn't know the player.
          */
         fun findPlayerIdentityId(playerName: String): UUID? = IdentityProvider.get().getPlayerFromName(playerName)?.id
@@ -78,6 +99,11 @@ class WhitelistCommandFacade
             val player = findPlayerIdentityId(playerName) ?: return WhitelistActionResult.PLAYER_NOT_FOUND
 
             return action(player, actor).toResult()
+        }
+
+        private companion object {
+            const val MAX_SUGGESTIONS = 100
+            const val WHITELIST_SUGGESTION_SCAN = 1000
         }
 
         private fun Boolean.toResult() = if (this) WhitelistActionResult.SUCCESS else WhitelistActionResult.NO_CHANGE

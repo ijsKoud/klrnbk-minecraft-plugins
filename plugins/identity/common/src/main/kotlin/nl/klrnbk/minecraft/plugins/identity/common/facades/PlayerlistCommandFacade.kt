@@ -27,7 +27,7 @@ class PlayerlistCommandFacade
                     .map { PlayerListPlayer(it.name, it.playerId.toKotlinUuid(), isOnline = it.isPlayerOnline) }
 
             val totalPlayers = playerDetailsService.getTotalPlayerCount()
-            val totalPages = ceil((totalPlayers + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE.toDouble()).toInt()
+            val totalPages = ceil(totalPlayers.toDouble() / ITEMS_PER_PAGE).toInt().coerceAtLeast(1)
 
             return PlayerListPage(
                 players = players,
