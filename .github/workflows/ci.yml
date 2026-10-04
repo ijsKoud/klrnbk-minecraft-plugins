@@ -1,32 +1,58 @@
 name: CI
 
+# Validation only: nothing in this workflow publishes or releases anything.
 on:
   push:
-    branches: [main]
+    branches: ['**']
+    tags-ignore: ['v*'] # tag pushes are handled by release.yml
   pull_request:
+
+permissions:
+  contents: read # read-only token; no secrets are used, so fork PRs are safe
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Test
-        run: ./gradlew test --continue
+      # `check` runs every module's tests (and static analysis once a tool such
+      # as ktlint/detekt is added to the build); `build` assembles all modules
+      # including the shaded plugin jars; collectPluginJars gathers the final
+      # plugin jars in build/dist. --continue reports all failures, not just the first.
+      - name: Check, build all plugins
+        run: ./gradlew clean check build collectPluginJars --continue --stacktrace
 
-      - name: Build (all modules, incl. shaded jars)
-        run: ./gradlew build -x test
+      - name: Verify plugin jars
+        run: scripts/verify-plugin-jars.sh build/dist
 
-      - name: Publish test reports
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
-          path: '**/build/reports/tests/test'
+          path: |
+            **/build/reports/tests/test
+            **/build/test-results/test
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # Debug artifacts only (not releases); expire quickly.
+      - name: Upload CI plugin jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-build-${{ github.sha }}
+          path: build/dist/*.jar
+          retention-days: 7

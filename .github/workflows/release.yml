@@ -1,0 +1,74 @@
+name: Release
+
+# Runs only when a version tag like v1.4.0 is pushed. Nothing is published
+# unless every validation step before "Create GitHub Release" succeeded.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # needed only to create the GitHub Release
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags for the changelog
+          persist-credentials: false
+
+      - name: Validate tag and extract version
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag '$TAG' is not a semantic version like v1.4.0"
+            exit 1
+          fi
+          # Releases must come from main.
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $TAG is not on the main branch"
+            exit 1
+          fi
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-* ]]; then echo "prerelease=true" >> "$GITHUB_OUTPUT"; else echo "prerelease=false" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Tests, checks and builds all run with the tag's version, so jar names and
+      # plugin descriptors carry it.
+      - name: Test, check and build all plugins
+        run: ./gradlew clean check build collectPluginJars -Pversion=${{ steps.version.outputs.version }} --stacktrace
+
+      - name: Verify plugin jars (names, descriptors, version)
+        run: scripts/verify-plugin-jars.sh build/dist "${{ steps.version.outputs.version }}"
+
+      - name: Generate changelog
+        run: scripts/generate-changelog.sh "${{ github.ref_name }}" "${{ github.repository }}" > build/CHANGELOG.md
+
+      # Everything above passed; only now do we publish. The release is created
+      # as a draft with all assets attached, then published in a final step, so
+      # users never see a release with missing files.
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          flags=()
+          [ "${{ steps.version.outputs.prerelease }}" = "true" ] && flags+=(--prerelease)
+          gh release create "$TAG" build/dist/*.jar build/CHANGELOG.md \
+            --draft --verify-tag --title "$TAG" --notes-file build/CHANGELOG.md "${flags[@]}"
+          gh release edit "$TAG" --draft=false

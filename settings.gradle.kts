@@ -48,9 +48,12 @@ include(":packages:paper-commands")
 include(":packages:database")
 include(":packages:config-yaml")
 
-include(":plugins:example-plugin:paper")
-include(":plugins:example-plugin:velocity")
-include(":plugins:example-plugin:common")
+// TODO: example-plugin is a template that still references the removed root
+// :common module (PluginConfig/PluginLogger no longer exist), so it does not
+// compile. Fix it, then re-enable.
+// include(":plugins:example-plugin:paper")
+// include(":plugins:example-plugin:velocity")
+// include(":plugins:example-plugin:common")
 
 include(":plugins:identity:paper")
 include(":plugins:identity:velocity")
