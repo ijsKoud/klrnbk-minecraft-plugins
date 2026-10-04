@@ -2,6 +2,7 @@ package nl.klrnbk.minecraft.plugins.whitelist.api
 
 import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistLog
 import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistSettingsLog
+import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistedPlayer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -31,6 +32,13 @@ class WhitelistApiTest {
                 identityId: UUID,
                 actorIdentityId: UUID,
             ) = false
+
+            override fun getWhitelistedPlayers(
+                page: Int,
+                itemsPerPage: Int,
+            ): List<WhitelistedPlayer> = emptyList()
+
+            override fun getWhitelistedPlayersCount() = 0L
 
             override fun getPlayerLogs(
                 identityId: UUID,

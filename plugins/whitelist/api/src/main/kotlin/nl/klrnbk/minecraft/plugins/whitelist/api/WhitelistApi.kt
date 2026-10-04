@@ -2,6 +2,7 @@ package nl.klrnbk.minecraft.plugins.whitelist.api
 
 import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistLog
 import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistSettingsLog
+import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistedPlayer
 import java.util.UUID
 
 interface WhitelistApi {
@@ -55,6 +56,22 @@ interface WhitelistApi {
         identityId: UUID,
         actorIdentityId: UUID,
     ): Boolean
+
+    /**
+     * Get the players that are currently whitelisted, most recently added first.
+     *
+     * @param page The page to retrieve, starting from 0.
+     * @param itemsPerPage The number of players per page.
+     */
+    fun getWhitelistedPlayers(
+        page: Int = 0,
+        itemsPerPage: Int = DEFAULT_ITEMS_PER_PAGE,
+    ): List<WhitelistedPlayer>
+
+    /**
+     * Get the number of players that are currently whitelisted.
+     */
+    fun getWhitelistedPlayersCount(): Long
 
     /**
      * Get the whitelist add/remove logs of a player, newest first.

@@ -11,7 +11,6 @@ import com.velocitypowered.api.command.CommandMeta
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.Player
-import com.velocitypowered.api.proxy.ProxyServer
 import net.kyori.adventure.text.Component
 import nl.klrnbk.minecraft.packages.velocity.commands.models.Command
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.factories.MessageFactory
@@ -20,13 +19,14 @@ import nl.klrnbk.minecraft.plugins.whitelist.common.Permissions
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.AdminCommandsFacade
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistActionResult
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistCommandFacade
+import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistListCommandFacade
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.WhitelistLogsCommandFacade
 import org.slf4j.Logger
 import java.nio.file.Path
 import java.util.UUID
 
 /**
- * /whitelist <on|off|add|remove|logs|reload>
+ * /whitelist <on|off|add|remove|list|logs|reload>
  */
 @Singleton
 class WhitelistCommand
@@ -35,7 +35,7 @@ class WhitelistCommand
         private val whitelistCommandFacade: WhitelistCommandFacade,
         private val adminCommandsFacade: AdminCommandsFacade,
         private val whitelistLogsCommandFacade: WhitelistLogsCommandFacade,
-        private val server: ProxyServer,
+        private val whitelistListCommandFacade: WhitelistListCommandFacade,
         private val logger: Logger,
         @DataDirectory private val dataDirectory: Path,
     ) : Command {
@@ -58,12 +58,18 @@ class WhitelistCommand
                         BrigadierCommand
                             .literalArgumentBuilder("add")
                             .requires { source -> source.hasPermission(Permissions.ADD_PLAYER) }
-                            .then(playerArgument(::add)),
+                            .then(playerArgument(whitelistCommandFacade::suggestPlayerNames, ::add)),
                     ).then(
                         BrigadierCommand
                             .literalArgumentBuilder("remove")
                             .requires { source -> source.hasPermission(Permissions.REMOVE_PLAYER) }
-                            .then(playerArgument(::remove)),
+                            .then(playerArgument(whitelistCommandFacade::suggestWhitelistedPlayerNames, ::remove)),
+                    ).then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("list")
+                            .requires { source -> source.hasPermission(Permissions.VIEW_LIST) }
+                            .executes { context -> list(context, 1) }
+                            .then(pageArgument { context -> list(context, context.getArgument("page", Int::class.java)) }),
                     ).then(
                         BrigadierCommand
                             .literalArgumentBuilder("logs")
@@ -77,7 +83,7 @@ class WhitelistCommand
                                 BrigadierCommand
                                     .literalArgumentBuilder("player")
                                     .then(
-                                        playerArgument { context -> playerLogs(context, 1) }
+                                        playerArgument(whitelistCommandFacade::suggestPlayerNames) { context -> playerLogs(context, 1) }
                                             .then(pageArgument { context -> playerLogs(context, context.getArgument("page", Int::class.java)) }),
                                     ),
                             ),
@@ -101,21 +107,38 @@ class WhitelistCommand
                 .plugin(plugin)
                 .build()
 
-        private fun playerArgument(executor: (CommandContext<CommandSource>) -> Int) =
-            BrigadierCommand
-                .requiredArgumentBuilder("player", StringArgumentType.word())
-                .suggests { _, builder ->
-                    server.allPlayers
-                        .map { it.username }
-                        .filter { it.startsWith(builder.remaining, ignoreCase = true) }
-                        .forEach(builder::suggest)
-                    builder.buildFuture()
-                }.executes(executor)
+        private fun playerArgument(
+            suggestions: (prefix: String) -> List<String>,
+            executor: (CommandContext<CommandSource>) -> Int,
+        ) = BrigadierCommand
+            .requiredArgumentBuilder("player", StringArgumentType.word())
+            .suggests { _, builder ->
+                try {
+                    suggestions(builder.remaining).forEach(builder::suggest)
+                } catch (exception: Exception) {
+                    // Suggestions are a convenience, a failing database shouldn't make the command unusable.
+                    logger.warn("Could not load player suggestions.", exception)
+                }
+                builder.buildFuture()
+            }.executes(executor)
 
         private fun pageArgument(executor: (CommandContext<CommandSource>) -> Int) =
             BrigadierCommand
                 .requiredArgumentBuilder("page", IntegerArgumentType.integer(1))
                 .executes(executor)
+
+        private fun list(
+            context: CommandContext<CommandSource>,
+            page: Int,
+        ): Int =
+            try {
+                context.source.sendMessage(whitelistListCommandFacade.produceMessage(whitelistListCommandFacade.getPage(page)))
+                0
+            } catch (exception: Exception) {
+                logger.error("Failed to show the whitelisted players.", exception)
+                send(context, LanguageKeys.ACTION_FAILED)
+                1
+            }
 
         private fun settingsLogs(
             context: CommandContext<CommandSource>,
@@ -258,6 +281,7 @@ class WhitelistCommand
                     Permissions.ADD_PLAYER,
                     Permissions.REMOVE_PLAYER,
                     Permissions.VIEW_LOGS,
+                    Permissions.VIEW_LIST,
                     Permissions.RELOAD_PLUGIN,
                 )
         }

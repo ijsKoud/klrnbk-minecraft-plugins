@@ -3,10 +3,14 @@ package nl.klrnbk.minecraft.plugins.whitelist.common.services.whitelist
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import nl.klrnbk.minecraft.packages.database.DatabaseContext
+import nl.klrnbk.minecraft.packages.database.QueryPagination
+import nl.klrnbk.minecraft.plugins.whitelist.api.models.WhitelistedPlayer
 import nl.klrnbk.minecraft.plugins.whitelist.common.providers.database.repositories.PlayerWhitelistRepository
 import nl.klrnbk.minecraft.plugins.whitelist.common.services.logs.WhitelistLogsService
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import kotlin.time.toJavaInstant
 import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
 
 @Singleton
 class PlayerWhitelistService
@@ -20,6 +24,17 @@ class PlayerWhitelistService
             val whitelistDetails = playerWhitelistRepository.findByPlayerIdentityId(playerIdentityId) ?: return false
             return whitelistDetails.isWhitelisted
         }
+
+        fun getWhitelistedPlayers(pagination: QueryPagination): List<WhitelistedPlayer> =
+            playerWhitelistRepository.findAllWhitelisted(pagination).map {
+                WhitelistedPlayer(
+                    playerId = it.identityId.toJavaUuid(),
+                    actorId = it.actorIdentityId.toJavaUuid(),
+                    whitelistedAt = it.lastUpdatedAt.toJavaInstant(),
+                )
+            }
+
+        fun getWhitelistedPlayersCount(): Long = playerWhitelistRepository.countWhitelisted()
 
         /**
          * @return true if the player was removed, false if the player was not whitelisted.

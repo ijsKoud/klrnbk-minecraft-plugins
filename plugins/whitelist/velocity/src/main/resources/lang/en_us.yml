@@ -33,3 +33,10 @@ whitelist:
     footer_next: "<color:#FDBA74><b>NEXT</b></color>"
     actor_console: "<gray>Console</gray>"
     actor_unknown: "<gray>Unknown player</gray>"
+  list:
+    header: "WHITELISTED PLAYERS"
+    entry: "- <arg:0> <gray>(added <arg:1> by <arg:2>)</gray>"
+    empty: "<gray>Nobody is whitelisted.</gray>"
+    page: "PAGE <arg:0> OUT OF <arg:1>"
+    footer_previous: "<color:#FDBA74><b>PREVIOUS</b></color>"
+    footer_next: "<color:#FDBA74><b>NEXT</b></color>"

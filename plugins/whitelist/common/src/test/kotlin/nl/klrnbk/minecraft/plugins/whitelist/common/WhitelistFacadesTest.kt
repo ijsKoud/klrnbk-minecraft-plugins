@@ -30,17 +30,7 @@ class WhitelistFacadesTest {
     private val apiFacade = WhitelistApiFacade(env.playerWhitelistService, env.activeStatusService, env.logsService)
 
     init {
-        IdentityProvider.register(
-            object : IdentityApi {
-                private val players = listOf(alice, admin)
-
-                override fun getPlayerFromUuid(uuid: UUID) = players.firstOrNull { it.playerId == uuid }
-
-                override fun getPlayerFromId(id: UUID) = players.firstOrNull { it.id == id }
-
-                override fun getPlayerFromName(name: String) = players.firstOrNull { it.name.equals(name, ignoreCase = true) }
-            },
-        )
+        registerIdentity(alice, admin)
     }
 
     @AfterEach
@@ -48,15 +38,6 @@ class WhitelistFacadesTest {
         IdentityProvider.unregister()
         env.close()
     }
-
-    private fun identityPlayer(name: String) =
-        IdentityPlayer(
-            id = UUID.randomUUID(),
-            playerId = UUID.randomUUID(),
-            name = name,
-            firstJoined = Instant.now(),
-            isPlayerOnline = false,
-        )
 
     // Command facade
 
@@ -174,25 +155,75 @@ class WhitelistFacadesTest {
     fun `everyone may join while the whitelist is disabled, without asking identity`() {
         IdentityProvider.unregister()
 
-        assertTrue(joinFacade(enabled = false).isPlayerAllowedToJoinServer(UUID.randomUUID().toKotlinUuid()))
+        assertTrue(joinFacade(enabled = false).isPlayerAllowedToJoinServer(UUID.randomUUID().toKotlinUuid(), "Anyone"))
     }
 
     @Test
     fun `only whitelisted players may join while the whitelist is enabled`() {
         val facade = joinFacade(enabled = true)
 
-        assertFalse(facade.isPlayerAllowedToJoinServer(alice.playerId.toKotlinUuid()))
+        assertFalse(facade.isPlayerAllowedToJoinServer(alice.playerId.toKotlinUuid(), "Alice"))
 
         apiFacade.addPlayerToWhitelist(alice.id, admin.id)
-        assertTrue(facade.isPlayerAllowedToJoinServer(alice.playerId.toKotlinUuid()))
-        assertFalse(facade.isPlayerAllowedToJoinServer(admin.playerId.toKotlinUuid()))
+        assertTrue(facade.isPlayerAllowedToJoinServer(alice.playerId.toKotlinUuid(), "Alice"))
+        assertFalse(facade.isPlayerAllowedToJoinServer(admin.playerId.toKotlinUuid(), "Admin"))
     }
 
     @Test
-    fun `players unknown to identity can't be checked`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            joinFacade(enabled = true).isPlayerAllowedToJoinServer(UUID.randomUUID().toKotlinUuid())
-        }
+    fun `players unknown to identity are denied while the whitelist is enabled`() {
+        val result = joinFacade(enabled = true).checkJoin(UUID.randomUUID().toKotlinUuid(), "Stranger")
+
+        assertEquals(PlayerWhitelistFacade.JoinCheckResult.UNKNOWN_PLAYER, result)
+        assertFalse(result.isAllowed)
+    }
+
+    @Test
+    fun `clients without a uuid are checked by name`() {
+        val facade = joinFacade(enabled = true)
+        assertEquals(PlayerWhitelistFacade.JoinCheckResult.NOT_WHITELISTED, facade.checkJoin(null, "alice"))
+
+        apiFacade.addPlayerToWhitelist(alice.id, admin.id)
+
+        assertEquals(PlayerWhitelistFacade.JoinCheckResult.WHITELISTED, facade.checkJoin(null, "alice"))
+        assertEquals(PlayerWhitelistFacade.JoinCheckResult.UNKNOWN_PLAYER, facade.checkJoin(null, "Nobody"))
+    }
+
+    // Whitelisted players
+
+    @Test
+    fun `api lists whitelisted players, newest first, without removed ones`() {
+        val bob = identityPlayer("Bob")
+        (IdentityProvider.get() as FakeIdentityApi).players.add(bob)
+        apiFacade.addPlayerToWhitelist(alice.id, admin.id)
+        Thread.sleep(5)
+        apiFacade.addPlayerToWhitelist(bob.id, WhitelistApi.CONSOLE_ACTOR_ID)
+        Thread.sleep(5)
+        apiFacade.addPlayerToWhitelist(admin.id, admin.id)
+        apiFacade.removePlayerFromWhitelist(admin.id, admin.id)
+
+        val players = apiFacade.getWhitelistedPlayers()
+
+        assertEquals(2, apiFacade.getWhitelistedPlayersCount())
+        assertEquals(listOf(bob.id, alice.id), players.map { it.playerId })
+        assertEquals(listOf(WhitelistApi.CONSOLE_ACTOR_ID, admin.id), players.map { it.actorId })
+        assertEquals(listOf(alice.id), apiFacade.getWhitelistedPlayers(page = 1, itemsPerPage = 1).map { it.playerId })
+    }
+
+    // Suggestions
+
+    @Test
+    fun `player suggestions come from identity, not from who is online`() {
+        assertEquals(listOf("Admin", "Alice"), commandFacade.suggestPlayerNames("a"))
+        assertEquals(listOf("Alice"), commandFacade.suggestPlayerNames("ALI"))
+        assertEquals(listOf("Admin", "Alice"), commandFacade.suggestPlayerNames(""))
+    }
+
+    @Test
+    fun `remove suggestions only contain whitelisted players`() {
+        apiFacade.addPlayerToWhitelist(alice.id, admin.id)
+
+        assertEquals(listOf("Alice"), commandFacade.suggestWhitelistedPlayerNames(""))
+        assertEquals(emptyList<String>(), commandFacade.suggestWhitelistedPlayerNames("ad"))
     }
 
     // Reload
