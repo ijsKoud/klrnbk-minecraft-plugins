@@ -1,0 +1,16 @@
+name: MCPlugin
+version: '@version@'
+main: nl.klrnbk.minecraft.plugins.identity.paper.MCPluginMain
+bootstrapper: nl.klrnbk.minecraft.plugins.paper.MCPluginBootstrap
+
+api-version: '26.2'
+author: YourName
+description: Example Paper plugin from the Kotlin monorepo.
+
+# Paperweight/paper-plugin.yml permission + dependency blocks go here, e.g.:
+# dependencies:
+#   server:
+#     SomeOtherPlugin:
+#       load: BEFORE
+#       required: false
+#       join-classpath: true
