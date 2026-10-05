@@ -2,7 +2,6 @@ package nl.klrnbk.minecraft.plugins.whitelist.velocity.listeners
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.ResultedEvent
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.LoginEvent
@@ -17,10 +16,12 @@ class PlayerConnectListener
         private val playerWhitelistFacade: PlayerWhitelistFacade,
         private val logger: Logger,
     ) {
-        @Subscribe(order = PostOrder.LAST)
+        @Subscribe(priority = Short.MIN_VALUE)
         fun onLogin(event: LoginEvent) {
+            // Someone else already denied the connection, keep their reason.
             if (!event.result.isAllowed) return
 
+            // Fail closed: if the whitelist can't be checked (e.g. the database is down) nobody gets in.
             val check =
                 try {
                     playerWhitelistFacade.checkJoin(event.player.uniqueId.toKotlinUuid(), event.player.username)

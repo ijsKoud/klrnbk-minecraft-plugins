@@ -32,16 +32,16 @@ The console can run every command; its actions are logged as the console.
 
 ## How joining works
 
-When the whitelist is on, a connecting player is checked in `PreLoginEvent`:
+When the whitelist is on, a connecting player is checked in `LoginEvent`, after authentication, so the UUID is the final one even when an
+authentication plugin or offline mode decides it:
 
-1. The connecting UUID is resolved to the player's Identity ID. Clients older than 1.20.2 send no UUID and are
-   looked up by name instead.
+1. The player's UUID is resolved to their Identity ID.
 2. Players Identity doesn't know, and players that aren't whitelisted, are denied with the configured `kick-message`.
 3. **If the check itself fails (for example the database is down), the player is denied** (fail closed). The error
    is logged.
 
 Every denial is logged with the name, UUID and reason. The listener runs last and only ever denies: it never
-overrides a login mode or denial set by another plugin.
+overrides a denial set by another plugin.
 
 ## Logging
 
