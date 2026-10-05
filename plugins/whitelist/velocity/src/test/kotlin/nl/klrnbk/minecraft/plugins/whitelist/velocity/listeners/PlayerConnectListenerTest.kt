@@ -1,7 +1,9 @@
 package nl.klrnbk.minecraft.plugins.whitelist.velocity.listeners
 
-import com.velocitypowered.api.event.connection.PreLoginEvent
-import com.velocitypowered.api.proxy.InboundConnection
+import com.velocitypowered.api.event.ResultedEvent
+import com.velocitypowered.api.event.connection.LoginEvent
+import com.velocitypowered.api.proxy.Player
+import io.mockk.every
 import io.mockk.mockk
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import nl.klrnbk.minecraft.plugins.whitelist.common.WhitelistTestEnvironment
@@ -36,12 +38,18 @@ class PlayerConnectListenerTest {
     }
 
     private fun connect(
-        uuid: java.util.UUID? = player.playerId,
-        before: PreLoginEvent.PreLoginComponentResult? = null,
-    ): PreLoginEvent {
-        val event = PreLoginEvent(mockk<InboundConnection>(relaxed = true), player.name, uuid)
+        uuid: java.util.UUID = player.playerId,
+        name: String = player.name,
+        before: ResultedEvent.ComponentResult? = null,
+    ): LoginEvent {
+        val velocityPlayer =
+            mockk<Player>(relaxed = true).also {
+                every { it.uniqueId } returns uuid
+                every { it.username } returns name
+            }
+        val event = LoginEvent(velocityPlayer, "")
         if (before != null) event.result = before
-        listener.onPreLogin(event)
+        listener.onLogin(event)
         return event
     }
 
@@ -102,23 +110,23 @@ class PlayerConnectListenerTest {
     }
 
     @Test
-    fun `clients without a uuid are checked by name`() {
+    fun `a whitelisted cracked player is allowed under the offline uuid the proxy gave them`() {
+        val offlineUuid = com.velocitypowered.api.util.UuidUtils.generateOfflinePlayerUuid("Steve")
+        val steve = identityPlayer("Steve").copy(playerId = offlineUuid)
+        registerIdentity(steve, admin)
         setWhitelist(true)
-        assertFalse(connect(uuid = null).result.isAllowed)
+        env.playerWhitelistService.addPlayerToWhitelist(steve.id.toKotlinUuid(), admin.id.toKotlinUuid())
 
-        env.playerWhitelistService.addPlayerToWhitelist(player.id.toKotlinUuid(), admin.id.toKotlinUuid())
-
-        assertTrue(connect(uuid = null).result.isAllowed)
+        assertTrue(connect(uuid = offlineUuid, name = "Steve").result.isAllowed)
     }
 
     @Test
-    fun `an allowed player keeps the login mode another plugin chose`() {
+    fun `a different name can't ride on a whitelisted player's uuid by claiming it`() {
         setWhitelist(true)
         env.playerWhitelistService.addPlayerToWhitelist(player.id.toKotlinUuid(), admin.id.toKotlinUuid())
 
-        val result = connect(before = PreLoginEvent.PreLoginComponentResult.forceOfflineMode()).result
-
-        assertTrue(result.isForceOfflineMode)
+        // Under the final UUID of an unknown player the check fails, whatever UUID the client claimed earlier.
+        assertFalse(connect(uuid = java.util.UUID.randomUUID(), name = "Mallory").result.isAllowed)
     }
 
     @Test
@@ -127,7 +135,7 @@ class PlayerConnectListenerTest {
         env.playerWhitelistService.addPlayerToWhitelist(player.id.toKotlinUuid(), admin.id.toKotlinUuid())
         val reason = net.kyori.adventure.text.Component.text("Banned")
 
-        val result = connect(before = PreLoginEvent.PreLoginComponentResult.denied(reason)).result
+        val result = connect(before = ResultedEvent.ComponentResult.denied(reason)).result
 
         assertFalse(result.isAllowed)
         assertTrue(result.reasonComponent.get() == reason)

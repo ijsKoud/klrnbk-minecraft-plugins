@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    testImplementation(project(":packages:config-yaml"))
     implementation(project(":plugins:identity:common"))
     implementation(project(":packages:common-cryptography"))
     implementation(project(":packages:i18n"))

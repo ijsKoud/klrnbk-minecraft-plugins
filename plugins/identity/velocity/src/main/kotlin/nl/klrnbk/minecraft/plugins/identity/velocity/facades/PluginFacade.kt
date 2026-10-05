@@ -91,6 +91,12 @@ class PluginFacade
             val config = configService.getConfig()
             if (!config.logs.enabled) return
 
+            // A player that left before the login event reached us was never registered, there is nothing to log.
+            if (playerDetailsService.getPlayerDetailsByPlayerId(playerId) == null) {
+                logger.debug("Not logging the disconnect of unregistered player {}", playerId)
+                return
+            }
+
             val encryptedPlayerIp = CryptographyUtil.encrypt(playerIp, config.encryptionKey!!)
             playerConnectionLogsService.addDisconnectLogEntry(
                 playerId = playerId,

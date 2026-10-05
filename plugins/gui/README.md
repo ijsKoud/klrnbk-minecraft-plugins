@@ -53,7 +53,7 @@ On the proxy, in `plugins/`:
 2. **PacketEvents for Velocity** — the *release jar* `packetevents-velocity-2.14.0.jar` (or newer 2.x) from the
    [PacketEvents releases](https://github.com/retrooper/packetevents/releases). Not the thin Maven artifact.
    `klrnbk-gui` refuses to start without it and says so in the log.
-3. **`gui-velocity-1.0.0.jar`** (this plugin, id `klrnbk-gui`).
+3. **`gui-velocity-1.0.1.jar`** (this plugin, id `klrnbk-gui`).
 4. Optional, for Bedrock: **Geyser-Velocity** (and Floodgate if you use it) on the *proxy*. Geyser installed only on a
    backend server does not help: those Bedrock players never pass through the proxy, so the proxy cannot open a GUI for them.
 

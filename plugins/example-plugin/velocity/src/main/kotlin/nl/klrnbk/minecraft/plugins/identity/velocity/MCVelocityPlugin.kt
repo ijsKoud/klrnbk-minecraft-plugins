@@ -15,7 +15,7 @@ import java.nio.file.Path
 @Plugin(
     id = "mcplugin",
     name = "MCPlugin",
-    version = "1.0.0",
+    version = "1.0.1",
     description = "Example Velocity proxy plugin from the Kotlin monorepo.",
     authors = ["YourName"],
 )

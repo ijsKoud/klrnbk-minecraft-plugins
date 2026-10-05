@@ -19,7 +19,7 @@ import java.nio.file.Path
 @Plugin(
     id = "klrnbk-gui",
     name = "KLRNBK GUI",
-    version = "1.0.0",
+    version = "1.0.1",
     description = "Inventory GUI framework for KLRNBK Velocity plugins (Java and Bedrock/Geyser).",
     authors = ["ijsKoud <daan@klrnbk.nl>"],
     url = "https://klrnbk.nl/github/klrnbk-minecraft-plugins",

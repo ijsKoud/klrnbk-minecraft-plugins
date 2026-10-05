@@ -18,7 +18,7 @@ import java.nio.file.Path
 @Plugin(
     id = "klrnbk-whitelist",
     name = "KLRNBK Whitelist",
-    version = "1.0.0",
+    version = "1.0.1",
     description = "Enforce a proxy-wide whitelist for Minecraft servers.",
     authors = ["ijsKoud <daan@klrnbk.nl>"],
     url = "https://klrnbk.nl/github/klrnbk-minecraft-plugins",

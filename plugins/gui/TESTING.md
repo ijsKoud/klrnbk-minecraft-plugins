@@ -37,8 +37,8 @@ Geyser instance or a 26.2 client accepts, and rendering. That is what the manual
 
 Setup, once:
 
-1. Velocity 4.x proxy with `runtime-velocity`, **PacketEvents-Velocity 2.14.0**, `gui-velocity-1.0.0.jar`,
-   `gui-example-1.0.0.jar`; any 26.2 backend behind it.
+1. Velocity 4.x proxy with `runtime-velocity`, **PacketEvents-Velocity 2.14.0**, `gui-velocity-1.0.1.jar`,
+   `gui-example-1.0.1.jar`; any 26.2 backend behind it.
 2. For Bedrock: Geyser-Velocity (+ Floodgate) on the proxy, a Bedrock client.
 3. Start the proxy: the log must say `GUI framework ready. Protocol: PacketEvents 2.14.0 …`. If it says PacketEvents is not
    initialised, fix that first.

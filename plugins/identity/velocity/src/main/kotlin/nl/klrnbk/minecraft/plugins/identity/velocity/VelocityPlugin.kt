@@ -4,7 +4,7 @@ import com.google.inject.Guice
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
-import com.velocitypowered.api.event.connection.PreLoginEvent
+import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.Dependency
@@ -23,7 +23,7 @@ import kotlin.uuid.toKotlinUuid
 @Plugin(
     id = "klrnbk-identity",
     name = "KLRNBK Identity",
-    version = "1.0.0",
+    version = "1.0.1",
     description =
         "Keeps track of all players that have ever joined the server. This plugin is a helper plugin for all other KLRNBK plugins that require player data.",
     authors = ["ijsKoud <daan@klrnbk.nl>"],
@@ -60,19 +60,17 @@ class VelocityPlugin
             "${connection.remoteAddress.address.hostAddress}:${connection.remoteAddress.port}"
 
         @Subscribe(priority = Short.MAX_VALUE)
-        fun onPreLoginEvent(event: PreLoginEvent) {
+        fun onLoginEvent(event: LoginEvent) {
             injector
                 .getInstance(PluginFacade::class.java)
                 .registerAndOrLogPlayerConnection(
-                    // UniqueId is guaranteed to exist at v1.20.2+,
-                    // we can therefore safely assume that it exists
-                    playerId = event.uniqueId!!.toKotlinUuid(),
-                    playerName = event.username,
+                    playerId = event.player.uniqueId.toKotlinUuid(),
+                    playerName = event.player.username,
                     serverIp =
-                        event.connection.virtualHost
+                        event.player.virtualHost
                             .getOrNull()
                             ?.hostString ?: "unknown",
-                    playerIp = getPlayerIp(event.connection),
+                    playerIp = getPlayerIp(event.player),
                 )
         }
 
