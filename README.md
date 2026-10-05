@@ -381,4 +381,4 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Plugin jars are built with `./gradlew collectPluginJars` into `build/dist`. Local builds default to version `1.0.0`; override with `-Pversion=x.y.z`.
+Plugin jars are built with `./gradlew collectPluginJars` into `build/dist`. Local builds default to version `1.0.1`; override with `-Pversion=x.y.z`.

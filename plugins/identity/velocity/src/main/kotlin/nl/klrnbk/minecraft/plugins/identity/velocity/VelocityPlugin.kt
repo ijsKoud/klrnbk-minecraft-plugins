@@ -23,7 +23,7 @@ import kotlin.uuid.toKotlinUuid
 @Plugin(
     id = "klrnbk-identity",
     name = "KLRNBK Identity",
-    version = "1.0.0",
+    version = "1.0.1",
     description =
         "Keeps track of all players that have ever joined the server. This plugin is a helper plugin for all other KLRNBK plugins that require player data.",
     authors = ["ijsKoud <daan@klrnbk.nl>"],

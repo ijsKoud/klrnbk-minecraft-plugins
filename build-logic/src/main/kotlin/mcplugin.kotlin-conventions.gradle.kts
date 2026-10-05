@@ -41,7 +41,7 @@ group =
 version =
     (findProperty("version")?.toString())
         ?.takeIf { it.isNotBlank() && it != "unspecified" }
-        ?: "1.0.0"
+        ?: "1.0.1"
 
 // Every module's jar otherwise defaults to just its directory name —
 // paper-1.0.0.jar, velocity-1.0.0.jar, common-1.0.0.jar — identical across

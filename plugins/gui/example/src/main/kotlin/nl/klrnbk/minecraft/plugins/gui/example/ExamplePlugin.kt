@@ -20,7 +20,7 @@ import org.slf4j.Logger
 @Plugin(
     id = "klrnbk-gui-example",
     name = "KLRNBK GUI Example",
-    version = "1.0.0",
+    version = "1.0.1",
     description = "Example and manual test menu for the KLRNBK GUI framework.",
     authors = ["ijsKoud <daan@klrnbk.nl>"],
     dependencies = [
