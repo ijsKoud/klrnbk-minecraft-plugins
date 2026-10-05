@@ -63,6 +63,11 @@ include(":plugins:whitelist:velocity")
 include(":plugins:whitelist:api")
 include(":plugins:whitelist:common")
 
+include(":plugins:discordId:velocity")
+include(":plugins:discordId:paper")
+// include(":plugins:discordId:api")
+include(":plugins:discordId:common")
+
 // TODO: moderation is being rewritten; re-enable once it is added back
 // include(":plugins:moderation:paper")
 // include(":plugins:moderation:velocity")
