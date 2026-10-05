@@ -17,6 +17,9 @@ dependencies {
     api("org.jetbrains.exposed:exposed-migration-core:1.4.0")
     api("org.jetbrains.exposed:exposed-migration-jdbc:1.4.0")
 
+    // Export/import file format
+    implementation(libs.kotlinx.serialization.json)
+
     // Database Drivers
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.6")

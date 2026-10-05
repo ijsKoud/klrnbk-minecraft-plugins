@@ -8,6 +8,7 @@ import nl.klrnbk.minecraft.plugins.identity.common.providers.database.Datasource
 import nl.klrnbk.minecraft.plugins.identity.common.providers.database.models.PlayerConnectionLogEntityTable
 import nl.klrnbk.minecraft.plugins.identity.common.providers.database.models.PlayerEntityTable
 import nl.klrnbk.minecraft.plugins.identity.common.providers.database.repositories.PlayerConnectionLogEntityRepository
+import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
@@ -99,8 +100,7 @@ class DatabaseService
             transaction(datasourceProvider.database) {
                 val statements =
                     MigrationUtils.statementsRequiredForDatabaseMigration(
-                        PlayerEntityTable,
-                        PlayerConnectionLogEntityTable,
+                        *TABLES.toTypedArray(),
                         withLogs = true,
                     )
 
@@ -128,5 +128,12 @@ class DatabaseService
                 datasourceProvider.disconnect()
                 throw exception
             }
+        }
+
+        companion object {
+            /**
+             * All tables of the plugin, in the order they can be restored (parents first).
+             */
+            val TABLES: List<IdTable<*>> = listOf(PlayerEntityTable, PlayerConnectionLogEntityTable)
         }
     }

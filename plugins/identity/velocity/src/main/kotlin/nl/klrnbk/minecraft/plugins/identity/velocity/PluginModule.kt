@@ -11,6 +11,8 @@ import nl.klrnbk.minecraft.plugins.identity.common.providers.player.PlayerOnline
 import nl.klrnbk.minecraft.plugins.identity.velocity.commands.PlayerInformationCommand
 import nl.klrnbk.minecraft.plugins.identity.velocity.commands.PlayerLogsCommand
 import nl.klrnbk.minecraft.plugins.identity.velocity.commands.PlayerlistCommand
+import nl.klrnbk.minecraft.plugins.identity.velocity.commands.ExportCommand
+import nl.klrnbk.minecraft.plugins.identity.velocity.commands.ImportCommand
 import nl.klrnbk.minecraft.plugins.identity.velocity.commands.ReloadCommand
 import nl.klrnbk.minecraft.plugins.identity.velocity.facades.VelocityIdentityApiFacade
 import nl.klrnbk.minecraft.plugins.identity.velocity.providers.player.VelocityPlayerOnlineStatusProvider
@@ -43,6 +45,8 @@ class PluginModule(
             )
 
         commands.addBinding().to(ReloadCommand::class.java)
+        commands.addBinding().to(ExportCommand::class.java)
+        commands.addBinding().to(ImportCommand::class.java)
         commands.addBinding().to(PlayerlistCommand::class.java)
         commands.addBinding().to(PlayerInformationCommand::class.java)
         commands.addBinding().to(PlayerLogsCommand::class.java)

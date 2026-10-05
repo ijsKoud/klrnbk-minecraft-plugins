@@ -2,6 +2,12 @@ identity:
   admin:
     reload:
       success: "Successfully reloaded plugin <bold>Identity</bold>."
+    export:
+      success: "Exported <arg:1> rows to <bold><arg:0></bold> in the exports folder."
+    import:
+      success: "Imported <arg:0> rows."
+    transfer:
+      failed: "<red>Failed: <arg:0></red>"
 
   player:
     common:
