@@ -3,10 +3,10 @@ package nl.klrnbk.minecraft.plugins.whitelist.velocity.listeners
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import com.velocitypowered.api.event.PostOrder
+import com.velocitypowered.api.event.ResultedEvent
 import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.connection.PreLoginEvent
+import com.velocitypowered.api.event.connection.LoginEvent
 import nl.klrnbk.minecraft.plugins.whitelist.common.facades.PlayerWhitelistFacade
-import nl.klrnbk.minecraft.plugins.whitelist.common.facades.PlayerWhitelistFacade.JoinCheckResult
 import org.slf4j.Logger
 import kotlin.uuid.toKotlinUuid
 
@@ -17,26 +17,24 @@ class PlayerConnectListener
         private val playerWhitelistFacade: PlayerWhitelistFacade,
         private val logger: Logger,
     ) {
-        // Last, so every other plugin (Identity registering the player, auth plugins setting the login mode) has had its say.
-        @Suppress("DEPRECATION")
         @Subscribe(order = PostOrder.LAST)
-        fun onPreLogin(event: PreLoginEvent) {
-            // Someone else already denied the connection, keep their reason.
+        fun onLogin(event: LoginEvent) {
             if (!event.result.isAllowed) return
 
-            // Fail closed: if the whitelist can't be checked (e.g. the database is down) nobody gets in.
             val check =
                 try {
-                    // UniqueId is only there for 1.20.2+ clients, older ones are checked by name.
-                    playerWhitelistFacade.checkJoin(event.uniqueId?.toKotlinUuid(), event.username)
+                    playerWhitelistFacade.checkJoin(event.player.uniqueId.toKotlinUuid(), event.player.username)
                 } catch (exception: Exception) {
-                    logger.error("Could not check the whitelist for player ${event.username} (${event.uniqueId}), denying the connection.", exception)
+                    logger.error(
+                        "Could not check the whitelist for player ${event.player.username} (${event.player.uniqueId}), denying the connection.",
+                        exception,
+                    )
                     null
                 }
 
-            if (check?.isAllowed == true) return // leave the result alone so login modes set by other plugins survive
+            if (check?.isAllowed == true) return
 
-            logger.info("Denied ${event.username} (${event.uniqueId}): ${check ?: "whitelist check failed"}")
-            event.result = PreLoginEvent.PreLoginComponentResult.denied(playerWhitelistFacade.getDenialMessage())
+            logger.info("Denied ${event.player.username} (${event.player.uniqueId}): ${check ?: "whitelist check failed"}")
+            event.result = ResultedEvent.ComponentResult.denied(playerWhitelistFacade.getDenialMessage())
         }
     }
