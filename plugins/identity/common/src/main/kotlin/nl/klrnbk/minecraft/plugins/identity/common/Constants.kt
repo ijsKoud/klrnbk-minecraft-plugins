@@ -10,6 +10,8 @@ const val LOGS_PREFIX = "[KLRNBK Identity]"
 
 object Permissions {
     const val RELOAD_PLUGIN = "klrnbk.identity.reload"
+    const val EXPORT_DATA = "klrnbk.identity.export"
+    const val IMPORT_DATA = "klrnbk.identity.import"
     const val VIEW_PLAYERS = "klrnbk.identity.view.players"
     const val VIEW_PLAYER_INFO = "klrnbk.identity.view.player-info"
     const val VIEW_LOGS = "klrnbk.identity.view.logs"
@@ -18,6 +20,9 @@ object Permissions {
 
 object LanguageKeys {
     const val RELOAD_SUCCESS = "identity.admin.reload.success"
+    const val EXPORT_SUCCESS = "identity.admin.export.success"
+    const val IMPORT_SUCCESS = "identity.admin.import.success"
+    const val TRANSFER_FAILED = "identity.admin.transfer.failed"
     const val PLAYER_LIST_HEADER = "identity.player.list.header"
     const val PLAYER_LIST_PAGE = "identity.player.list.page"
     const val PLAYER_LIST_PLAYER_HOVER_TEXT = "identity.player.list.player_hover_text"

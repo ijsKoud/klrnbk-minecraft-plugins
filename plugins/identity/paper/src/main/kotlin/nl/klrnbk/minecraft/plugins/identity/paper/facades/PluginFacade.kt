@@ -13,6 +13,8 @@ import nl.klrnbk.minecraft.plugins.identity.paper.MCPluginMain
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.PlayerInformationCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.PlayerLogsCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.PlayerlistCommand
+import nl.klrnbk.minecraft.plugins.identity.paper.commands.ExportCommand
+import nl.klrnbk.minecraft.plugins.identity.paper.commands.ImportCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.ReloadCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.listeners.PlayerConnectionListener
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.TranslationService
@@ -30,6 +32,8 @@ class PluginFacade
         private val identityApi: IdentityApi,
         private val playerConnectionListener: PlayerConnectionListener,
         private val reloadCommand: ReloadCommand,
+        private val exportCommand: ExportCommand,
+        private val importCommand: ImportCommand,
         private val playerlistCommand: PlayerlistCommand,
         private val playerInformationCommand: PlayerInformationCommand,
         private val playerLogsCommand: PlayerLogsCommand,
@@ -73,6 +77,8 @@ class PluginFacade
 
         private fun registerCommands(plugin: JavaPlugin) {
             reloadCommand.register(plugin)
+            exportCommand.register(plugin)
+            importCommand.register(plugin)
             playerlistCommand.register(plugin)
             playerInformationCommand.register(plugin)
             playerLogsCommand.register(plugin)

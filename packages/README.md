@@ -24,6 +24,28 @@ and stops it first on `stop()`, and survives a database that is offline at start
 `BaseDatasource.isConnected()` is true when the pool is open and hands out a valid connection. The connection
 timeout is 5 seconds so a dead database fails fast instead of blocking player logins.
 
+### Export and import (migrations)
+
+`DatabaseTransfer` writes tables to a file and restores such a file again, to move data to another database
+(also another type, e.g. SQLite to PostgreSQL) or to keep a backup. The tables are passed in as Exposed `IdTable`s,
+**parents first**, so a plugin only has to list its own:
+
+```kotlin
+transfer.export(listOf(PlayerEntityTable, PlayerConnectionLogEntityTable), path)   // -> TransferResult(rows per table)
+transfer.import(listOf(PlayerEntityTable, PlayerConnectionLogEntityTable), path)
+```
+
+An export is a zip holding `manifest.json` (format version, per table its columns and row count) and one
+`tables/<name>.ndjson` per table with one JSON object per row. Rows are streamed in both directions, values are stored
+portably (UUIDs and timestamps as text, enums by name), and column types outside that set (blobs, decimals, ...) are
+rejected up front rather than exported lossy. Behaviour worth knowing:
+
+- Export never overwrites an existing file.
+- Import needs empty target tables (the plugin has to have migrated the schema first), checks that the file has every
+  table with exactly the same columns, and runs in a single transaction: it restores everything or nothing.
+- Problems with the file or target throw `DatabaseTransferException`, with a message that is fit to show an admin.
+- Values that a plugin encrypts itself (like Identity's IP addresses) are copied as stored, so the target needs the same key.
+
 ### Pagination without OFFSET
 
 `LIMIT n OFFSET m` makes the database walk over and discard `m` rows for every request, so page 100 costs a

@@ -19,6 +19,12 @@ Available for Velocity and Paper.
 | `/player <player>` | `/identity-player` | `klrnbk.identity.view.player-info` | Details of a player. |
 | `/playerlogs <player> [page]` | `/identity-playerlogs` | `klrnbk.identity.view.logs` | Connection logs of a player. IPs are only shown with `klrnbk.identity.view.ips`. |
 | `/identityreload` | `/identity-reload` | `klrnbk.identity.reload` | Reload the config and the database connection. |
+| `/identityexport` | `/identity-export` | `klrnbk.identity.export` | Export all players and logs to a new zip in the plugin's `exports` folder. |
+| `/identityimport <file>` | `/identity-import` | `klrnbk.identity.import` | Import a file from the `exports` folder. Only works on an empty database, all or nothing. |
+
+To migrate to another database: export, switch `database` in `config.yml` and `/identityreload`, copy the zip into the
+`exports` folder of the new setup if needed, then import. Keep the same `encryption-key`, or the stored IP addresses
+can't be decrypted.
 
 ## Configuration
 
