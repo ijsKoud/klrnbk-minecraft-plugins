@@ -10,11 +10,11 @@ import nl.klrnbk.minecraft.plugins.identity.common.LOGS_CLEANUP_INTERVAL
 import nl.klrnbk.minecraft.plugins.identity.common.services.config.ConfigService
 import nl.klrnbk.minecraft.plugins.identity.common.services.database.DatabaseService
 import nl.klrnbk.minecraft.plugins.identity.paper.MCPluginMain
+import nl.klrnbk.minecraft.plugins.identity.paper.commands.ExportCommand
+import nl.klrnbk.minecraft.plugins.identity.paper.commands.ImportCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.PlayerInformationCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.PlayerLogsCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.PlayerlistCommand
-import nl.klrnbk.minecraft.plugins.identity.paper.commands.ExportCommand
-import nl.klrnbk.minecraft.plugins.identity.paper.commands.ImportCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.commands.ReloadCommand
 import nl.klrnbk.minecraft.plugins.identity.paper.listeners.PlayerConnectionListener
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.TranslationService
@@ -47,24 +47,24 @@ class PluginFacade
             plugin.config = config
 
             databaseService.start(config.database, dataDirectory)
-            plugin.server.scheduler.runTaskTimerAsynchronously(
-                plugin,
-                Runnable {
-                    databaseService.performLogsCleanup(config.logs.purgeLogsAfterDays.days)
-                },
-                20L,
-                LOGS_CLEANUP_INTERVAL.toMillis() / 50L,
-            )
+            plugin.server.pluginManager.registerEvents(playerConnectionListener, plugin)
 
             translationService.loadResources(javaClass.classLoader, listOf("lang/en_us.yml"))
             MessageFactory.setPrefix(prefix = CHAT_PREFIX)
             IdentityProvider.register(identityApi)
 
             if (config.useProxy) {
-                logger.info("use-proxy is enabled; skipping command and event registration on Paper.")
+                logger.info("use-proxy is enabled; skipping command and database cleanup on Paper.")
             } else {
                 registerCommands(plugin)
-                plugin.server.pluginManager.registerEvents(playerConnectionListener, plugin)
+                plugin.server.scheduler.runTaskTimerAsynchronously(
+                    plugin,
+                    Runnable {
+                        databaseService.performLogsCleanup(config.logs.purgeLogsAfterDays.days)
+                    },
+                    20L,
+                    LOGS_CLEANUP_INTERVAL.toMillis() / 50L,
+                )
             }
 
             logger.info("Plugin started on Paper.")
