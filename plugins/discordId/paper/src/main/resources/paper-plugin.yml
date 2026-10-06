@@ -1,16 +1,21 @@
-name: MCPlugin
+name: 'KLRNBK-DiscordId'
 version: '@version@'
-main: nl.klrnbk.minecraft.plugins.identity.paper.MCPluginMain
-bootstrapper: nl.klrnbk.minecraft.plugins.paper.MCPluginBootstrap
+main: nl.klrnbk.minecraft.plugins.discordId.paper.MCPluginMain
+bootstrapper: nl.klrnbk.minecraft.plugins.discordId.paper.MCPluginBootstrap
 
 api-version: '26.2'
-author: YourName
-description: Example Paper plugin from the Kotlin monorepo.
+author: ijsKoud <daan@klrnbk.nl>
+description: Allows players to link their Discord account to their Minecraft account.
 
-# Paperweight/paper-plugin.yml permission + dependency blocks go here, e.g.:
-# dependencies:
-#   server:
-#     SomeOtherPlugin:
-#       load: BEFORE
-#       required: false
-#       join-classpath: true
+dependencies:
+  server:
+    KLRNBK-Shared-Runtime:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    # Identity registers the IdentityProvider instance this plugin reads, so it has to be enabled first.
+    # join-classpath makes the Identity API classes (bundled in the Identity jar) visible to this plugin.
+    KLRNBK-Identity:
+      load: BEFORE
+      required: true
+      join-classpath: true

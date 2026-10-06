@@ -1,0 +1,33 @@
+# Whether a proxy like BungeeCord or Velocity is being used.
+# If you are using a proxy, set this to true: the Discord bot and the commands then only run on the proxy,
+# so make sure the database connection is the same on both.
+use-proxy: false
+
+discord:
+  # The ID of the server booster role, leave empty to disable booster tracking.
+  booster-role: 'YOUR_BOOSTER_ROLE_ID_HERE'
+  # How long (in milliseconds) a player has to wait before they can unlink or relink their account.
+  unlink-cooldown: 2592000000
+  status-message: 'Minecraft & Discord users'
+  status-type: 3 # 0 = Playing, 1 = Streaming, 2 = Listening, 3 = Watching, 4 = Custom, 5 = Competing
+  bot-token: 'YOUR_BOT_TOKEN_HERE'
+
+# Database
+database:
+  # The database type to use. Supported values: MYSQL, POSTGRESQL, SQLITE
+  type: SQLITE
+
+  # The database host
+  host: localhost
+
+  # The database port
+  port: 3306
+
+  # The database name
+  database: database.db
+
+  # The database username
+  username: root
+
+  # The database password
+  password: password
