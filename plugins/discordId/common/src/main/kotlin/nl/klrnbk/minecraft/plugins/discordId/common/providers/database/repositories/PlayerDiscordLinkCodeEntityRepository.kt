@@ -7,6 +7,7 @@ import nl.klrnbk.minecraft.packages.database.DatabaseContext
 import nl.klrnbk.minecraft.plugins.discordId.common.LINK_CODE_VALIDITY_DURATION
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkCodeEntity
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkCodeTable
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.lessEq
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -21,6 +22,13 @@ class PlayerDiscordLinkCodeEntityRepository
             execute {
                 PlayerDiscordLinkCodeEntity
                     .findById(entityId)
+            }
+
+        fun findByCode(code: String): PlayerDiscordLinkCodeEntity? =
+            execute {
+                PlayerDiscordLinkCodeEntity
+                    .find { PlayerDiscordLinkCodeTable.code eq code }
+                    .firstOrNull()
             }
 
         fun create(entityId: Uuid): PlayerDiscordLinkCodeEntity =

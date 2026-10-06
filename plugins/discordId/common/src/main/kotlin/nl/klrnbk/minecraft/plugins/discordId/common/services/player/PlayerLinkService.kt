@@ -39,9 +39,8 @@ class PlayerLinkService
         }
 
         fun unlinkDiscordFromPlayer(identityId: Uuid): PlayerDiscordLinkDetails {
-            val entity =
-                playerDiscordLinkEntityRepository.findByIdentityId(identityId)
-                    ?: throw IllegalArgumentException("Player is not linked to a Discord account")
+            playerDiscordLinkEntityRepository.findByIdentityId(identityId)
+                ?: throw IllegalArgumentException("Player is not linked to a Discord account")
 
             if (canUnlinkDiscordFromPlayer(identityId).not()) {
                 throw IllegalArgumentException("Player is not allowed to unlink their Discord account yet")
@@ -49,6 +48,15 @@ class PlayerLinkService
 
             val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, null, false)
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
+        }
+
+        fun canLinkDiscordToPlayer(
+            identityId: Uuid,
+            discordId: String,
+        ): Boolean {
+            if (playerDiscordLinkEntityRepository.findByDiscordId(discordId) != null) return false
+            val entity = playerDiscordLinkEntityRepository.findByIdentityId(identityId) ?: return true
+            return entity.discordId.isNullOrEmpty()
         }
 
         fun canUnlinkDiscordFromPlayer(identityId: Uuid): Boolean {
@@ -60,5 +68,12 @@ class PlayerLinkService
                 configProvider.config.discord.unlinkCooldown
                     .toDuration(kotlin.time.DurationUnit.MILLISECONDS) <
                 Clock.System.now()
+        }
+
+        fun canRequestLinkCode(identityId: Uuid): Boolean {
+            if (canUnlinkDiscordFromPlayer(identityId).not()) return false
+
+            val entity = playerDiscordLinkEntityRepository.findByIdentityId(identityId) ?: return true
+            return entity.discordId.isNullOrEmpty()
         }
     }

@@ -21,5 +21,10 @@ class PlayerLinkCodeService
             return PlayerLinkCode.fromEntity(entity)
         }
 
+        fun getCodeDetailsForPlayerByCode(linkCode: String): PlayerLinkCode? {
+            val entity = playerDiscordLinkCodeEntityRepository.findByCode(linkCode) ?: return null
+            return PlayerLinkCode.fromEntity(entity)
+        }
+
         fun deleteCodeDetailsForPlayer(playerIdentityId: Uuid): Boolean = playerDiscordLinkCodeEntityRepository.delete(playerIdentityId)
     }
