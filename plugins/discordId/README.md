@@ -81,10 +81,13 @@ codes are deleted every minute.
 4. Start the server. On startup the bot registers its global slash commands `/link` and `/lookup`, which can take a
    little while to show up in Discord.
 
-The bot is created with JDA's light configuration and requests no extra gateway intents, so no privileged intent has
-to be enabled in the portal. Because member and role-change events are not guaranteed without the privileged
-*Server Members* intent, a check every 4 hours (first one after 10 minutes) also repairs differing Discord usernames
-and booster statuses of linked players.
+The bot requests the privileged **Server Members** gateway intent so it receives role changes and username updates
+of linked players. Enable **Server Members Intent** under *Bot -> Privileged Gateway Intents* in the Developer Portal,
+or Discord refuses the connection. A check every 4 hours (first one after 10 minutes) also repairs differing Discord
+usernames and booster statuses of linked players, for example after downtime.
+
+If the bot can't log in (for example an invalid `discord.bot-token`), the error is logged and the plugin keeps
+running without the bot.
 
 ## Messages
 

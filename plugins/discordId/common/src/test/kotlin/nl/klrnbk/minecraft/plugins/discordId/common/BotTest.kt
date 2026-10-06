@@ -356,11 +356,15 @@ class BotTest {
         user: User?,
         member: Member?,
     ): JDA {
-        // retrieveMemberById(...).queue(success) calls success with the member; a member Discord can't find never does.
+        // retrieveMemberById(...).queue(success, failure) calls success with the member, or failure when Discord can't find them.
         val retrieve =
             mockk<CacheRestAction<Member>> {
-                every { queue(any<Consumer<in Member>>()) } answers {
-                    if (member != null) firstArg<Consumer<in Member>>().accept(member)
+                every { queue(any<Consumer<in Member>>(), any<Consumer<in Throwable>>()) } answers {
+                    if (member != null) {
+                        firstArg<Consumer<in Member>>().accept(member)
+                    } else {
+                        secondArg<Consumer<in Throwable>>().accept(IllegalStateException("unknown member"))
+                    }
                 }
             }
         val guild = mockk<Guild> { every { retrieveMemberById(any<String>()) } returns retrieve }
@@ -399,7 +403,7 @@ class BotTest {
     }
 
     @Test
-    fun `the periodic check leaves players alone that discord can not find`() {
+    fun `the periodic check logs members Discord can not find and leaves the player alone`() {
         env.linkService.linkDiscordWithPlayer(identityId, "111", "alice#1", true)
         env.ageLink(identityId, 1.days)
         val before = checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId))
