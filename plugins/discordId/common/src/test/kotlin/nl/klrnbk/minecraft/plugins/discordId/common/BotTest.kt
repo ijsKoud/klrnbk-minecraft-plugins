@@ -28,7 +28,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.days
 import kotlin.uuid.toKotlinUuid
@@ -282,10 +281,6 @@ class BotTest {
         assertTrue(env.linkService.getAllLinkedPlayers().isEmpty())
     }
 
-    @Disabled(
-        "Known bug: onGuildMemberRoleRemove checks event.roles, which holds the REMOVED roles, so losing the " +
-            "booster role marks the player as booster instead of clearing it.",
-    )
     @Test
     fun `losing the booster role clears the booster status`() {
         env.linkService.linkDiscordWithPlayer(identityId, "111", "alice#1", true)
@@ -295,10 +290,6 @@ class BotTest {
         assertFalse(checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId)).isBooster)
     }
 
-    @Disabled(
-        "Known bug: the role events only look at the roles that were added/removed, not the member's full role " +
-            "list, so adding an unrelated role to a booster clears the booster status.",
-    )
     @Test
     fun `an unrelated role change does not touch the booster status`() {
         env.linkService.linkDiscordWithPlayer(identityId, "111", "alice#1", true)
@@ -308,7 +299,19 @@ class BotTest {
         assertTrue(checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId)).isBooster)
     }
 
-    // ScheduledTasksFacade: the periodic check that repairs differences after downtime
+    // ScheduledTasksFacade
+
+    @Test
+    fun `the scheduled tasks can be stopped and started again, as a reload does`() {
+        val jda = jdaWith(null, null)
+
+        env.scheduledTasksFacade.start(jda)
+        env.scheduledTasksFacade.stop()
+        env.scheduledTasksFacade.start(jda)
+        env.scheduledTasksFacade.stop()
+    }
+
+    // The periodic check that repairs differences after downtime
 
     private fun jdaWith(
         user: User?,

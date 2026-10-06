@@ -196,6 +196,37 @@ class DiscordIdCommandTest {
         assertEquals(listOf("Alice"), suggestions)
     }
 
+    // adminunlink / import
+
+    @Test
+    fun `adminunlink force unlinks a player during the cooldown`() {
+        env.linkService.linkDiscordWithPlayer(identityId(bob), "222", "bob#1", false)
+
+        run("discordId adminunlink Bob", console(Permissions.UNLINK_FORCED))
+
+        assertEquals(LanguageKeys.LINK_CODE_UNLINK_SUCCESS, lastMessage().messageKey())
+        assertFalse(checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId(bob))).isLinked)
+    }
+
+    @Test
+    fun `adminunlink needs the permission and a player name`() {
+        assertThrows(CommandSyntaxException::class.java) { run("discordId adminunlink Bob", console()) }
+        assertThrows(CommandSyntaxException::class.java) { run("discordId adminunlink", console(Permissions.UNLINK_FORCED)) }
+    }
+
+    @Test
+    fun `import of a missing file reports the failure`() {
+        run("discordId import missing.zip", console(Permissions.ADMIN_IMPORT))
+
+        assertEquals(LanguageKeys.LINK_CODE_TRANSFER_FAILED, lastMessage().messageKey())
+    }
+
+    @Test
+    fun `import needs the permission and a file name`() {
+        assertThrows(CommandSyntaxException::class.java) { run("discordId import x.zip", console()) }
+        assertThrows(CommandSyntaxException::class.java) { run("discordId import", console(Permissions.ADMIN_IMPORT)) }
+    }
+
     // Registration
 
     @Test
