@@ -8,6 +8,7 @@ import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseSe
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import org.slf4j.Logger
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 @Singleton
 class ScheduledTasksFacade
@@ -28,18 +29,28 @@ class ScheduledTasksFacade
             // with an initial delay of 10 minutes, the delay is to prevent a race condition where the bot starts and checks are already started.
             // This check is to ensure that the linked players in the database are up to date with the Discord usernames and booster roles after for example an outage or downtime.
             scheduler.scheduleWithFixedDelay(
-                { checkForPlayerLinkDifferences(jda) },
+                { runSafely("player link check") { checkForPlayerLinkDifferences(jda) } },
                 10,
                 240,
-                java.util.concurrent.TimeUnit.MINUTES,
+                TimeUnit.MINUTES,
             )
-
             scheduler.scheduleWithFixedDelay(
-                { databaseService.performCleanup() },
+                { runSafely("link code cleanup") { databaseService.performCleanup() } },
                 0,
                 1,
-                java.util.concurrent.TimeUnit.MINUTES,
+                TimeUnit.MINUTES,
             )
+        }
+
+        private fun runSafely(
+            name: String,
+            task: () -> Unit,
+        ) {
+            try {
+                task()
+            } catch (exception: Exception) {
+                logger.error("Scheduled task '$name' failed, it will run again at its next interval.", exception)
+            }
         }
 
         fun stop() {
