@@ -7,4 +7,5 @@ fun PlayerLinkCode.Companion.fromEntity(entity: PlayerDiscordLinkCodeEntity): Pl
     PlayerLinkCode(
         code = entity.code,
         validUntil = entity.validUntil,
+        playerEntityId = entity.id.value,
     )
