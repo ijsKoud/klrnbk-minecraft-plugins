@@ -30,7 +30,7 @@ class LinkCommand
                 event.hook.editOriginal(result).queue()
             } catch (e: Exception) {
                 event.hook.editOriginal("An error occurred while linking your account, please try again later.").queue()
-                logger.error("Error while linking Discord user ${event.user.id} with code $code", e)
+                logger.error("Error while linking Discord user ${event.user.id}", e)
             }
         }
 
