@@ -53,7 +53,7 @@ class LinkFacade
                 identityApi.getPlayerFromName(playerName)
                     ?: return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
 
-            return unlinkPlayer(identityPlayer.id.toKotlinUuid(), isForced = true, isBypassed = false)
+            return unlinkPlayer(identityPlayer.playerId.toKotlinUuid(), isForced = true, isBypassed = false)
         }
 
         fun unlinkPlayer(
