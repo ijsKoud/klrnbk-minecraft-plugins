@@ -32,9 +32,15 @@ open class BotMain
             logger.info("Discord bot is starting...")
 
             try {
+                val token = configService.getConfig().discord.botToken
+                if (token?.isBlank() == true || token == "YOUR_BOT_TOKEN_HERE") {
+                    logger.error("Discord bot token is not set. Please set it in the configuration file.")
+                    return
+                }
+
                 discordApi =
                     JDABuilder
-                        .createDefault(configService.getConfig().discord.botToken)
+                        .createDefault(token)
                         .enableIntents(GatewayIntent.GUILD_MEMBERS)
                         .build()
                 discordApi.addEventListener(readyEvent)
@@ -44,7 +50,7 @@ open class BotMain
 
                 scheduledTasksFacade.start(discordApi)
             } catch (e: Exception) {
-                logger.error("Failed to start Discord bot, possibly a token that is misconfigured?", e)
+                logger.error("Failed to start Discord bot", e)
             }
         }
 
