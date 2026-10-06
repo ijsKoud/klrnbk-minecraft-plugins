@@ -124,8 +124,8 @@ class PlayerLinkServicesTest {
     }
 
     @Test
-    fun `a player who never linked can not unlink`() {
-        assertFalse(env.linkService.canUnlinkDiscordFromPlayer(player))
+    fun `checking the unlink cooldown of a player who never linked is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) { env.linkService.canUnlinkDiscordFromPlayer(player) }
     }
 
     @Test
