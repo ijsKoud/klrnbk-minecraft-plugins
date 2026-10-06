@@ -6,18 +6,22 @@ import nl.klrnbk.minecraft.packages.database.DatabaseConnectionMonitor
 import nl.klrnbk.minecraft.packages.database.DatasourceConfig
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.DatasourceProvider
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkTable
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories.PlayerDiscordLinkCodeEntityRepository
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import org.slf4j.Logger
 import java.nio.file.Path
+import kotlin.time.Clock
+import kotlin.time.Duration
 
 @Singleton
 class DatabaseService
     @Inject
     constructor(
         private val datasourceProvider: DatasourceProvider,
+        private val playerDiscordLinkCodeEntityRepository: PlayerDiscordLinkCodeEntityRepository,
         private val logger: Logger,
     ) {
         private var config: DatasourceConfig? = null
@@ -43,6 +47,11 @@ class DatabaseService
             connectAndMigrate(reconnect = true)
 
             logger.info("Database connection restarted.")
+        }
+
+        fun performCleanup() {
+            val amount = playerDiscordLinkCodeEntityRepository.deleteExpired()
+            logger.info("Deleted $amount expired player Discord link codes.")
         }
 
         /**
