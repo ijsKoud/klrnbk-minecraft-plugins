@@ -51,6 +51,9 @@ All commands are subcommands of `/discordid` (aliases: `/klrnbk-discordid`, on V
 
 Other permission: `klrnbk.discord-id.unlink.bypass` lets a player unlink during the cooldown.
 
+> **Known issue (Velocity):** `adminunlink` and `import` are registered without their argument, so they can't be used
+> on Velocity yet. They work on Paper.
+
 To migrate to another database: export, switch `database` in `config.yml` and `/discordid reload`, copy the zip into
 the `exports` folder of the new setup if needed, then import.
 
