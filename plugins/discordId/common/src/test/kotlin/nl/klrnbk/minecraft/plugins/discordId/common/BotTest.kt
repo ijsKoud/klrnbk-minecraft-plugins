@@ -18,6 +18,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.InteractionContextType
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
@@ -200,6 +202,21 @@ class BotTest {
         assertEquals("lookup", data.name)
         assertEquals(OptionType.USER, data.options.single().type)
         assertTrue(data.options.single().isRequired)
+    }
+
+    @Test
+    fun `lookup is hidden from everyone by default and only usable in servers`() {
+        val data = env.lookupCommand.register() as SlashCommandData
+
+        assertEquals(DefaultMemberPermissions.DISABLED, data.defaultPermissions)
+        assertEquals(setOf(InteractionContextType.GUILD), data.contexts)
+    }
+
+    @Test
+    fun `link stays enabled by default for everyone`() {
+        val data = env.linkCommand.register() as SlashCommandData
+
+        assertEquals(DefaultMemberPermissions.ENABLED, data.defaultPermissions)
     }
 
     // InteractionEvent

@@ -32,7 +32,8 @@ Rules:
 - After unlinking you can't request a new code until `unlink-cooldown` has passed, and you can't unlink before the
   cooldown since the link was made either (default 30 days). Players with `klrnbk.discord-id.unlink.bypass` and admins
   skip this.
-- `/lookup user:<user>` in Discord answers with the Minecraft name of a linked user. `/discordid lookup <player>` in
+- `/lookup user:<user>` in Discord answers with the Minecraft name of a linked user. It is only usable in servers and
+  disabled for everyone by default: allow it for the roles that should have it under *Server Settings -> Integrations*. `/discordid lookup <player>` in
   Minecraft shows the Discord account of a player.
 
 ## Commands
