@@ -8,6 +8,7 @@ import nl.klrnbk.minecraft.plugins.discordId.common.bot.events.InteractionEvent
 import nl.klrnbk.minecraft.plugins.discordId.common.bot.events.ReadyEvent
 import nl.klrnbk.minecraft.plugins.discordId.common.bot.events.RoleChangeEvent
 import nl.klrnbk.minecraft.plugins.discordId.common.bot.events.UserRenameEvent
+import nl.klrnbk.minecraft.plugins.discordId.common.facades.ScheduledTasksFacade
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
 import org.slf4j.Logger
 
@@ -21,6 +22,7 @@ class BotMain
         private val interactionEvent: InteractionEvent,
         private val userRenameEvent: UserRenameEvent,
         private val userChangeEvent: RoleChangeEvent,
+        private val scheduledTasksFacade: ScheduledTasksFacade,
     ) {
         private lateinit var discordApi: JDA
 
@@ -32,5 +34,12 @@ class BotMain
             discordApi.addEventListener(interactionEvent)
             discordApi.addEventListener(userRenameEvent)
             discordApi.addEventListener(userChangeEvent)
+            scheduledTasksFacade.start(discordApi)
+        }
+
+        fun stop() {
+            logger.info("Discord bot is stopping...")
+            discordApi.shutdown()
+            scheduledTasksFacade.stop()
         }
     }
