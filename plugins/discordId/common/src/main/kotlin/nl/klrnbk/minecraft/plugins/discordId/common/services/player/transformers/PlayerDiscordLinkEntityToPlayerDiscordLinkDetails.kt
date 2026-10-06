@@ -7,6 +7,7 @@ fun PlayerDiscordLinkDetails.Companion.fromEntity(entity: PlayerDiscordLinkEntit
     PlayerDiscordLinkDetails(
         identityId = entity.id.value,
         discordId = entity.discordId,
+        discordName = entity.discordName,
         isBooster = entity.isBooster,
         isLinked = entity.discordId?.isNotEmpty() ?: false,
         lastUpdatedAt = entity.lastUpdatedAt,

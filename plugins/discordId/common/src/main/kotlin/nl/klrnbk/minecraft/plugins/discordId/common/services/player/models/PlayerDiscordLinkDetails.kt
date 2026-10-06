@@ -6,6 +6,7 @@ import kotlin.uuid.Uuid
 data class PlayerDiscordLinkDetails(
     val identityId: Uuid,
     val discordId: String?,
+    val discordName: String?,
     val isLinked: Boolean,
     val isBooster: Boolean,
     val lastUpdatedAt: Instant,
