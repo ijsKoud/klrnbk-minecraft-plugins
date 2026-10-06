@@ -86,13 +86,14 @@ class ScheduledTasksFacade
                     }
                 }
 
-                boosterRole?.guild?.getMemberById(it.discordId)?.let { member ->
+                boosterRole?.guild?.retrieveMemberById(it.discordId)?.queue { member ->
                     val hasBoosterRole = member.roles.any { role -> role.id == config.discord.boosterRole }
                     if (hasBoosterRole != it.isBooster) {
                         playerLinkService.updateBoosterStatusForLinkedPlayer(it.identityId, hasBoosterRole)
                     }
                 }
             }
+
             logger.debug("Finished checking for player link differences.")
         }
     }
