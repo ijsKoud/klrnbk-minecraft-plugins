@@ -22,6 +22,11 @@ class PlayerLinkService
             return PlayerDiscordLinkDetails.fromEntity(entity)
         }
 
+        fun getLinkDetailsByDiscordId(discordId: String): PlayerDiscordLinkDetails? {
+            val entity = playerDiscordLinkEntityRepository.findByDiscordId(discordId) ?: return null
+            return PlayerDiscordLinkDetails.fromEntity(entity)
+        }
+
         fun linkDiscordWithPlayer(
             identityId: Uuid,
             discordId: String,
