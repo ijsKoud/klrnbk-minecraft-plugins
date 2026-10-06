@@ -4,15 +4,12 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
-import net.kyori.adventure.text.event.ClickEvent
-import net.kyori.adventure.text.event.HoverEvent
 import nl.klrnbk.minecraft.plugins.discordId.common.LanguageKeys
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkCodeService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.factories.MessageFactory
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.utils.instantToComponentText
-import kotlin.time.Clock
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
@@ -26,16 +23,10 @@ class LinkFacade
     ) {
         private val identityApi = IdentityProvider.get()
 
-        fun lookupPlayer(playerName: String): TextComponent {
+        fun lookupPlayer(playerId: Uuid): TextComponent {
             val identityPlayer =
-                identityApi.getPlayerFromName(playerName)
-                    ?: return MessageFactory
-                        .factory()
-                        .appendAndParseWithTranslatable(
-                            LanguageKeys.LINK_CODE_LOOKUP_FAILED,
-                            Component.text(playerName),
-                        ).build()
-
+                identityApi.getPlayerFromUuid(playerId.toJavaUuid())
+                    ?: throw IllegalArgumentException("Player does not exist on identity but should")
             val identityId = identityPlayer.id.toKotlinUuid()
 
             val linkDetails =
@@ -48,18 +39,9 @@ class LinkFacade
                 .factory()
                 .appendAndParseWithTranslatable(
                     LanguageKeys.LINK_CODE_LOOKUP_SUCCESS,
-                    Component.text(identityPlayer.name),
                     Component.text(linkDetails.discordName ?: "N/A"),
                     Component.text(linkDetails.discordId ?: "N/A"),
                 ).build()
-        }
-
-        fun forceUnlinkPlayer(playerName: String): TextComponent {
-            val identityPlayer =
-                identityApi.getPlayerFromName(playerName)
-                    ?: return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
-
-            return unlinkPlayer(identityPlayer.playerId.toKotlinUuid(), isForced = true, isBypassed = false)
         }
 
         fun unlinkPlayer(
@@ -89,10 +71,6 @@ class LinkFacade
         ): String {
             val codeDetails =
                 playerLinkCodeService.getCodeDetailsForPlayerByCode(linkCode) ?: return LanguageKeys.LINK_CODE_INVALID
-            if (codeDetails.validUntil < Clock.System.now()) {
-                playerLinkCodeService.deleteCodeDetailsForPlayer(codeDetails.playerEntityId)
-                return LanguageKeys.LINK_CODE_INVALID
-            }
 
             val identityPlayer =
                 identityApi.getPlayerFromId(codeDetails.playerEntityId.toJavaUuid())
@@ -121,10 +99,7 @@ class LinkFacade
                 .factory()
                 .appendAndParseWithTranslatable(
                     LanguageKeys.LINK_CODE_DETAILS,
-                    Component
-                        .text(linkCodeDetails.code)
-                        .clickEvent(ClickEvent.copyToClipboard(linkCodeDetails.code))
-                        .hoverEvent(HoverEvent.showText(Component.text("Click to copy"))),
+                    Component.text(linkCodeDetails.code),
                     instantToComponentText(MessageFactory.factory().miniMessage, linkCodeDetails.validUntil),
                 ).build()
         }
