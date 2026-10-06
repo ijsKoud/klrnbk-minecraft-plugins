@@ -71,6 +71,11 @@ proxy. Start with [`plugins/gui/README.md`](plugins/gui/README.md); background i
 players up. [`plugins/whitelist`](plugins/whitelist/README.md) is a proxy-wide whitelist on top of it, with
 commands, logging and its own API.
 
+## DiscordId
+
+[`plugins/discordId`](plugins/discordId/README.md) lets players link their Minecraft account to their Discord account
+with a Discord bot, for Velocity and Paper. It builds on Identity and needs the Shared Runtime plugin.
+
 ## Why `build-logic`
 
 With one plugin, each `build.gradle.kts` having its own shading/manifest/
