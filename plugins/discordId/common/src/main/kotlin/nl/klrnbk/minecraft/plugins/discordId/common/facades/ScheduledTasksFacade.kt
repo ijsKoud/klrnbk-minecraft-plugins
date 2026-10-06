@@ -4,8 +4,11 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import net.dv8tion.jda.api.JDA
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
+import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import org.slf4j.Logger
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 @Singleton
 class ScheduledTasksFacade
@@ -13,22 +16,42 @@ class ScheduledTasksFacade
     constructor(
         private val configService: ConfigService,
         private val playerLinkService: PlayerLinkService,
+        private val databaseService: DatabaseService,
         private val logger: Logger,
     ) {
-        private val scheduler =
-            java.util.concurrent.Executors
-                .newScheduledThreadPool(1)
+        private lateinit var scheduler: ScheduledExecutorService
 
         fun start(jda: JDA) {
+            scheduler =
+                java.util.concurrent.Executors
+                    .newScheduledThreadPool(1)
             // We schedule a task to check for player link differences every 4 hours,
             // with an initial delay of 10 minutes, the delay is to prevent a race condition where the bot starts and checks are already started.
             // This check is to ensure that the linked players in the database are up to date with the Discord usernames and booster roles after for example an outage or downtime.
             scheduler.scheduleWithFixedDelay(
-                { checkForPlayerLinkDifferences(jda) },
+                { runSafely("player link check") { checkForPlayerLinkDifferences(jda) } },
                 10,
                 240,
-                java.util.concurrent.TimeUnit.MINUTES,
+                TimeUnit.MINUTES,
             )
+            scheduler.scheduleWithFixedDelay(
+                { runSafely("link code cleanup") { databaseService.performCleanup() } },
+                0,
+                1,
+                TimeUnit.MINUTES,
+            )
+        }
+
+        // internal so tests can run it directly instead of waiting for the scheduler.
+        internal fun runSafely(
+            name: String,
+            task: () -> Unit,
+        ) {
+            try {
+                task()
+            } catch (exception: Exception) {
+                logger.error("Scheduled task '$name' failed, it will run again at its next interval.", exception)
+            }
         }
 
         fun stop() {

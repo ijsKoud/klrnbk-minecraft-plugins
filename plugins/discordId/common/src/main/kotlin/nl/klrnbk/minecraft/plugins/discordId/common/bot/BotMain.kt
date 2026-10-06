@@ -12,8 +12,9 @@ import nl.klrnbk.minecraft.plugins.discordId.common.facades.ScheduledTasksFacade
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
 import org.slf4j.Logger
 
+// `open` so tests can replace start/stop: starting logs in to Discord, which tests must not do.
 @Singleton
-class BotMain
+open class BotMain
     @Inject
     constructor(
         private val configService: ConfigService,
@@ -26,7 +27,7 @@ class BotMain
     ) {
         private lateinit var discordApi: JDA
 
-        fun start() {
+        open fun start() {
             logger.info("Discord bot is starting...")
 
             discordApi = JDABuilder.createLight(configService.getConfig().discord.botToken).build()
@@ -37,7 +38,7 @@ class BotMain
             scheduledTasksFacade.start(discordApi)
         }
 
-        fun stop() {
+        open fun stop() {
             logger.info("Discord bot is stopping...")
             discordApi.shutdown()
             scheduledTasksFacade.stop()

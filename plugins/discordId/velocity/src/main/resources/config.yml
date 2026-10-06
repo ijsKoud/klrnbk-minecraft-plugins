@@ -1,0 +1,33 @@
+# Whether a proxy like BungeeCord or Velocity is being used.
+# If you are using a proxy, set this to true.
+# And make sure that the database connection is the same as on the proxy server!!!
+use-proxy: true
+
+
+# Logs when a player joins or leaves the server.
+discord:
+  booster-role: 'YOUR_BOOSTER_ROLE_ID_HERE'
+  unlink-cooldown: 2592000000
+  status-message: 'Minecraft & Discord users'
+  status-type: 3 # 0 = Playing, 1 = Streaming, 2 = Listening, 3 = Watching, 4 = Custom, 5 = Competing
+  bot-token: 'YOUR_BOT_TOKEN_HERE'
+
+# Database
+database:
+  # The database type to use. Supported values: MYSQL, POSTGRESQL, SQLITE
+  type: SQLITE
+
+  # The database host
+  host: localhost
+
+  # The database port
+  port: 3306
+
+  # The database name
+  database: database.db
+
+  # The database username
+  username: root
+
+  # The database password
+  password: password

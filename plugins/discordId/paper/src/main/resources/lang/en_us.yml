@@ -1,0 +1,19 @@
+discord-id:
+  admin:
+    reload:
+      success: "Successfully reloaded plugin <bold>DiscordId</bold>."
+    export:
+      success: "Exported <arg:1> rows to <bold><arg:0></bold> in the exports folder."
+    import:
+      success: "Imported <arg:0> rows."
+    transfer:
+      failed: "<red>Failed: <arg:0></red>"
+  linkCode:
+    details: "Your link code is <bold><arg:0></bold>. You can use it until <bold><arg:1></bold>."
+    failed: "<red>You are not allowed to link your account at this time.</red>"
+  unlink:
+    success: "<green>Successfully unlinked your account.</green>"
+    failed: "<red>You are not allowed to unlink your account at this time.</red>"
+  lookup:
+    failed: "<red>No linked account found for <arg:0>.</red>"
+    success: "<green>Linked account for <arg:0> is <bold><arg:1> (<arg:2>)</bold>.</green>"
