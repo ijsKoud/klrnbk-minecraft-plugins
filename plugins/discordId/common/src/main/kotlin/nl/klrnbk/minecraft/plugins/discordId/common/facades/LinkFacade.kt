@@ -12,6 +12,7 @@ import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkSe
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.factories.MessageFactory
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.utils.instantToComponentText
+import kotlin.time.Clock
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
@@ -88,6 +89,10 @@ class LinkFacade
         ): String {
             val codeDetails =
                 playerLinkCodeService.getCodeDetailsForPlayerByCode(linkCode) ?: return LanguageKeys.LINK_CODE_INVALID
+            if (codeDetails.validUntil < Clock.System.now()) {
+                playerLinkCodeService.deleteCodeDetailsForPlayer(codeDetails.playerEntityId)
+                return LanguageKeys.LINK_CODE_INVALID
+            }
 
             val identityPlayer =
                 identityApi.getPlayerFromId(codeDetails.playerEntityId.toJavaUuid())
