@@ -61,7 +61,7 @@ class RepositoriesTest {
         env.ageLink(id, 1.minutes)
         val before = checkNotNull(env.linkRepository.findByIdentityId(id)).lastUpdatedAt
 
-        env.linkRepository.update(id, "discord-1", "alice2", true)
+        env.linkRepository.update(id, "discord-1", "alice2", true, updateLastUpdatedAt = true)
 
         val after = checkNotNull(env.linkRepository.findByIdentityId(id))
         assertEquals("alice2", after.discordName)
@@ -70,11 +70,25 @@ class RepositoriesTest {
     }
 
     @Test
+    fun `updating can leave the timestamp alone`() {
+        val id = Uuid.random()
+        env.linkRepository.create(id, "discord-1", "alice", false)
+        env.ageLink(id, 1.minutes)
+        val before = checkNotNull(env.linkRepository.findByIdentityId(id)).lastUpdatedAt
+
+        env.linkRepository.update(id, "discord-1", "alice2", true, updateLastUpdatedAt = false)
+
+        val after = checkNotNull(env.linkRepository.findByIdentityId(id))
+        assertEquals("alice2", after.discordName)
+        assertEquals(before, after.lastUpdatedAt)
+    }
+
+    @Test
     fun `updating can clear the discord account`() {
         val id = Uuid.random()
         env.linkRepository.create(id, "discord-1", "alice", true)
 
-        env.linkRepository.update(id, null, null, false)
+        env.linkRepository.update(id, null, null, false, updateLastUpdatedAt = true)
 
         assertNull(env.linkRepository.findByDiscordId("discord-1"))
         assertNull(checkNotNull(env.linkRepository.findByIdentityId(id)).discordId)
@@ -82,7 +96,7 @@ class RepositoriesTest {
 
     @Test
     fun `updating an unknown link is rejected`() {
-        assertThrows(IllegalArgumentException::class.java) { env.linkRepository.update(Uuid.random(), "d", "n", false) }
+        assertThrows(IllegalArgumentException::class.java) { env.linkRepository.update(Uuid.random(), "d", "n", false, updateLastUpdatedAt = true) }
     }
 
     @Test
