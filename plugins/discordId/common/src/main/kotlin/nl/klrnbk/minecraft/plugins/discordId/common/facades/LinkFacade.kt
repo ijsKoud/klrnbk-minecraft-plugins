@@ -23,14 +23,41 @@ class LinkFacade
     ) {
         private val identityApi = IdentityProvider.get()
 
-        fun unlinkPlayer(playerId: Uuid): TextComponent {
+        fun lookupPlayer(playerId: Uuid): TextComponent {
+            val identityPlayer =
+                identityApi.getPlayerFromUuid(playerId.toJavaUuid())
+                    ?: throw IllegalArgumentException("Player does not exist on identity but should")
+            val identityId = identityPlayer.id.toKotlinUuid()
+
+            val linkDetails =
+                playerDiscordLinkService.getLinkDetailsByIdentityId(identityId) ?: return MessageFactory
+                    .factory()
+                    .appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_LOOKUP_FAILED, Component.text(identityPlayer.name))
+                    .build()
+
+            return MessageFactory
+                .factory()
+                .appendAndParseWithTranslatable(
+                    LanguageKeys.LINK_CODE_LOOKUP_SUCCESS,
+                    Component.text(linkDetails.discordName ?: "N/A"),
+                    Component.text(linkDetails.discordId ?: "N/A"),
+                ).build()
+        }
+
+        fun unlinkPlayer(
+            playerId: Uuid,
+            isForced: Boolean,
+            isBypassed: Boolean,
+        ): TextComponent {
             val identityPlayer =
                 identityApi.getPlayerFromUuid(playerId.toJavaUuid())
                     ?: throw IllegalArgumentException("Player does not exist on identity but should")
             val identityId = identityPlayer.id.toKotlinUuid()
 
             val canUnlink = playerDiscordLinkService.canUnlinkDiscordFromPlayer(identityId)
-            if (!canUnlink) return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
+            if (!canUnlink && !isForced && !isBypassed) {
+                return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
+            }
 
             playerDiscordLinkService.unlinkDiscordFromPlayer(identityId)
             return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_SUCCESS).build()
