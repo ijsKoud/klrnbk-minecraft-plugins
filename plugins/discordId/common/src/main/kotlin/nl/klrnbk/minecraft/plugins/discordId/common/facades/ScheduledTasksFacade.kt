@@ -42,7 +42,8 @@ class ScheduledTasksFacade
             )
         }
 
-        private fun runSafely(
+        // internal so tests can run it directly instead of waiting for the scheduler.
+        internal fun runSafely(
             name: String,
             task: () -> Unit,
         ) {

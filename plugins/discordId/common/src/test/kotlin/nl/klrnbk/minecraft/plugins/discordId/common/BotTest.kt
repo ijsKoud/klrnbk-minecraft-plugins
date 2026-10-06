@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 import net.dv8tion.jda.api.managers.Presence
+import nl.klrnbk.minecraft.plugins.discordId.common.facades.ScheduledTasksFacade
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -309,6 +310,31 @@ class BotTest {
         env.scheduledTasksFacade.stop()
         env.scheduledTasksFacade.start(jda)
         env.scheduledTasksFacade.stop()
+    }
+
+    @Test
+    fun `a failing scheduled task is logged and does not break the next run`() {
+        val logger = mockk<org.slf4j.Logger>(relaxed = true)
+        val facade = ScheduledTasksFacade(env.configService, env.linkService, env.databaseService, logger)
+        var runs = 0
+
+        facade.runSafely("failing") {
+            runs++
+            throw IllegalStateException("database is down")
+        }
+        facade.runSafely("failing") { runs++ }
+
+        assertEquals(2, runs)
+        verify(exactly = 1) { logger.error(match<String> { it.contains("failing") }, any<Throwable>()) }
+    }
+
+    @Test
+    fun `the cleanup task keeps running on a schedule even when the database fails`() {
+        val facade = env.scheduledTasksFacade
+        env.databaseService.stop() // every cleanup now throws
+
+        // Exceptions from the task body are swallowed by runSafely, so this must not throw.
+        facade.runSafely("link code cleanup") { env.databaseService.performCleanup() }
     }
 
     // The periodic check that repairs differences after downtime
