@@ -55,6 +55,7 @@ class ScheduledTasksFacade
         }
 
         fun stop() {
+            if (!::scheduler.isInitialized) return
             scheduler.shutdown()
 
             try {
