@@ -1,4 +1,4 @@
-package nl.klrnbk.minecraft.plugins.discordId.common.database.models
+package nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.UuidTable

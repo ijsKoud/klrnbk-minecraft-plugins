@@ -1,4 +1,4 @@
-package nl.klrnbk.minecraft.plugins.discordId.common.database
+package nl.klrnbk.minecraft.plugins.discordId.common.providers.database
 
 import com.google.inject.Inject
 import nl.klrnbk.minecraft.packages.database.BaseDatasource
