@@ -16,7 +16,7 @@ import org.slf4j.Logger
 import java.nio.file.Path
 
 @Plugin(
-    id = "klrnbk-discordId",
+    id = "klrnbk-discord-id",
     name = "KLRNBK DiscordId",
     version = "1.1.0",
     description =
