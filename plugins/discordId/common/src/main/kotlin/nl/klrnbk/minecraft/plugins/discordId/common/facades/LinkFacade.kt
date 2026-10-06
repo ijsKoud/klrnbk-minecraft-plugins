@@ -41,12 +41,9 @@ class LinkFacade
             discordId: String,
             discordName: String,
             isBooster: Boolean,
-        ): TextComponent {
+        ): String {
             val codeDetails =
-                playerLinkCodeService.getCodeDetailsForPlayerByCode(linkCode) ?: return MessageFactory
-                    .factory()
-                    .appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_INVALID)
-                    .build()
+                playerLinkCodeService.getCodeDetailsForPlayerByCode(linkCode) ?: return LanguageKeys.LINK_CODE_INVALID
 
             val identityPlayer =
                 identityApi.getPlayerFromId(codeDetails.playerEntityId.toJavaUuid())
@@ -54,11 +51,11 @@ class LinkFacade
             val identityId = identityPlayer.id.toKotlinUuid()
 
             val canLink = playerDiscordLinkService.canLinkDiscordToPlayer(identityId, discordId)
-            if (!canLink) return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_ALREADY_LINKED).build()
+            if (!canLink) return LanguageKeys.LINK_CODE_ALREADY_LINKED
 
             playerDiscordLinkService.linkDiscordWithPlayer(identityId, discordId, discordName, isBooster)
             playerLinkCodeService.deleteCodeDetailsForPlayer(codeDetails.playerEntityId)
-            return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_SUCCESS).build()
+            return LanguageKeys.LINK_CODE_SUCCESS
         }
 
         fun getLinkCodeForPlayer(playerId: Uuid): TextComponent {
@@ -78,5 +75,28 @@ class LinkFacade
                     Component.text(linkCodeDetails.code),
                     instantToComponentText(MessageFactory.factory().miniMessage, linkCodeDetails.validUntil),
                 ).build()
+        }
+
+        fun getMinecraftUsernameOfDiscordUser(discordId: String): String? {
+            val identityId = playerDiscordLinkService.getLinkDetailsByDiscordId(discordId)?.identityId ?: return null
+            val identityPlayer = identityApi.getPlayerFromId(identityId.toJavaUuid()) ?: return null
+
+            return identityPlayer.name
+        }
+
+        fun updateDiscordNameForLinkedPlayer(
+            discordId: String,
+            discordName: String,
+        ) {
+            val identityId = playerDiscordLinkService.getLinkDetailsByDiscordId(discordId)?.identityId ?: return
+            playerDiscordLinkService.updateDiscordUsernameForLinkedPlayer(identityId, discordName)
+        }
+
+        fun updateDiscordBoosterStatusForLinkedPlayer(
+            discordId: String,
+            isBooster: Boolean,
+        ) {
+            val identityId = playerDiscordLinkService.getLinkDetailsByDiscordId(discordId)?.identityId ?: return
+            playerDiscordLinkService.updateBoosterStatusForLinkedPlayer(identityId, isBooster)
         }
     }

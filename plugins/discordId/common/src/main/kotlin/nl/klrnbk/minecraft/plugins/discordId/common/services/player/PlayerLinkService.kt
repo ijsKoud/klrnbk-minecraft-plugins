@@ -22,6 +22,11 @@ class PlayerLinkService
             return PlayerDiscordLinkDetails.fromEntity(entity)
         }
 
+        fun getLinkDetailsByDiscordId(discordId: String): PlayerDiscordLinkDetails? {
+            val entity = playerDiscordLinkEntityRepository.findByDiscordId(discordId) ?: return null
+            return PlayerDiscordLinkDetails.fromEntity(entity)
+        }
+
         fun linkDiscordWithPlayer(
             identityId: Uuid,
             discordId: String,
@@ -49,6 +54,35 @@ class PlayerLinkService
 
             val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, null, null, false)
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
+        }
+
+        fun updateDiscordUsernameForLinkedPlayer(
+            identityId: Uuid,
+            discordName: String,
+        ): PlayerDiscordLinkDetails {
+            val entity =
+                playerDiscordLinkEntityRepository.findByIdentityId(identityId)
+                    ?: throw IllegalArgumentException("Player is not linked to a Discord account")
+
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, entity.discordId, discordName, entity.isBooster)
+            return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
+        }
+
+        fun updateBoosterStatusForLinkedPlayer(
+            identityId: Uuid,
+            isBooster: Boolean,
+        ): PlayerDiscordLinkDetails {
+            val entity =
+                playerDiscordLinkEntityRepository.findByIdentityId(identityId)
+                    ?: throw IllegalArgumentException("Player is not linked to a Discord account")
+
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, entity.discordId, entity.discordName, isBooster)
+            return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
+        }
+
+        fun getAllLinkedPlayers(): List<PlayerDiscordLinkDetails> {
+            val entities = playerDiscordLinkEntityRepository.findAll()
+            return entities.map { PlayerDiscordLinkDetails.fromEntity(it) }
         }
 
         fun canLinkDiscordToPlayer(

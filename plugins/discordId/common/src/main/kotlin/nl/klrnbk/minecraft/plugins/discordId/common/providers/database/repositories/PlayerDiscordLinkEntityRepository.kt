@@ -16,6 +16,11 @@ class PlayerDiscordLinkEntityRepository
     constructor(
         context: DatabaseContext,
     ) : BaseRepository(context) {
+        fun findAll(): List<PlayerDiscordLinkEntity> =
+            execute {
+                PlayerDiscordLinkEntity.all().toList()
+            }
+
         fun findByIdentityId(identityId: Uuid): PlayerDiscordLinkEntity? =
             execute {
                 PlayerDiscordLinkEntity

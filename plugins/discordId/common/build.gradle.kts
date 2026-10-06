@@ -12,4 +12,7 @@ dependencies {
 
     compileOnly(libs.adventure.api)
     compileOnly(libs.adventure.minimessage)
+
+    // Discord Dependencies
+    implementation("net.dv8tion:JDA:6.5.0")
 }
