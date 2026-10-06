@@ -1,4 +1,4 @@
-discordId:
+discord-id:
   admin:
     reload:
       success: "Successfully reloaded plugin <bold>DiscordId</bold>."
@@ -15,5 +15,5 @@ discordId:
     success: "<green>Successfully unlinked your account.</green>"
     failed: "<red>You are not allowed to unlink your account at this time.</red>"
   lookup:
-    notFound: "<red>No linked account found for <arg:0>.</red>"
-    found: "<green>Linked account for <arg:0> is <bold><arg:1> (<arg:2>)</bold>.</green>"
+    failed: "<red>No linked account found for <arg:0>.</red>"
+    success: "<green>Linked account for <arg:0> is <bold><arg:1> (<arg:2>)</bold>.</green>"

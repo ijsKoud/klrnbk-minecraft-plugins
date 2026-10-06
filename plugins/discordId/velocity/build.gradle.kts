@@ -8,5 +8,5 @@ dependencies {
     implementation(project(":packages:common-cryptography"))
     implementation(project(":packages:i18n"))
     implementation(project(":packages:velocity-commands"))
-    implementation(project(":plugins:identity:api"))
+    compileOnly(project(":plugins:identity:api"))
 }
