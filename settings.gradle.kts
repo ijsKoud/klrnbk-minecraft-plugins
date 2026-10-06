@@ -63,7 +63,7 @@ include(":plugins:whitelist:velocity")
 include(":plugins:whitelist:api")
 include(":plugins:whitelist:common")
 
-// include(":plugins:discordId:velocity")
+include(":plugins:discordId:velocity")
 // include(":plugins:discordId:paper")
 // include(":plugins:discordId:api")
 include(":plugins:discordId:common")
