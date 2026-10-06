@@ -36,11 +36,11 @@ open class BotMain
                 discordApi.addEventListener(interactionEvent)
                 discordApi.addEventListener(userRenameEvent)
                 discordApi.addEventListener(userChangeEvent)
+
+                scheduledTasksFacade.start(discordApi)
             } catch (e: Exception) {
                 logger.error("Failed to start Discord bot, possibly a token that is misconfigured?", e)
             }
-
-            scheduledTasksFacade.start(discordApi)
         }
 
         open fun stop() {
