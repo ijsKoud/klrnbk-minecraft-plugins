@@ -23,6 +23,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
 import net.dv8tion.jda.api.managers.Presence
+import net.dv8tion.jda.api.requests.restaction.CacheRestAction
+import java.util.function.Consumer
 import nl.klrnbk.minecraft.plugins.discordId.common.facades.ScheduledTasksFacade
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import org.junit.jupiter.api.AfterEach
@@ -125,6 +127,17 @@ class BotTest {
         env.linkCommand.execute(slash.event)
 
         verify { slash.hook.editOriginal(LanguageKeys.LINK_CODE_INVALID) }
+    }
+
+    @Test
+    fun `link answers with an error message instead of leaving the user waiting when something fails`() {
+        val code = requestCode()
+        env.databaseService.stop()
+        val slash = slash("link", options = mapOf("code" to stringOption(code)))
+
+        env.linkCommand.execute(slash.event)
+
+        verify { slash.hook.editOriginal("An error occurred while linking your account, please try again later.") }
     }
 
     @Test
@@ -343,7 +356,14 @@ class BotTest {
         user: User?,
         member: Member?,
     ): JDA {
-        val guild = mockk<Guild> { every { getMemberById(any<String>()) } returns member }
+        // retrieveMemberById(...).queue(success) calls success with the member; a member Discord can't find never does.
+        val retrieve =
+            mockk<CacheRestAction<Member>> {
+                every { queue(any<Consumer<in Member>>()) } answers {
+                    if (member != null) firstArg<Consumer<in Member>>().accept(member)
+                }
+            }
+        val guild = mockk<Guild> { every { retrieveMemberById(any<String>()) } returns retrieve }
         val boosterRole =
             mockk<Role> {
                 every { this@mockk.guild } returns guild

@@ -83,8 +83,8 @@ class DiscordIdTestEnvironment(
     val scheduledTasksFacade = ScheduledTasksFacade(configService, linkService, databaseService, NOPLogger.NOP_LOGGER)
 
     val linkFacade by lazy { LinkFacade(linkService, codeService) }
-    val linkCommand by lazy { LinkCommand(linkFacade, configService) }
-    val lookupCommand by lazy { LookupCommand(linkFacade) }
+    val linkCommand by lazy { LinkCommand(linkFacade, configService, NOPLogger.NOP_LOGGER) }
+    val lookupCommand by lazy { LookupCommand(linkFacade, NOPLogger.NOP_LOGGER) }
     val readyEvent by lazy { ReadyEvent(NOPLogger.NOP_LOGGER, lookupCommand, linkCommand, configService) }
     val interactionEvent by lazy { InteractionEvent(lookupCommand, linkCommand) }
     val userRenameEvent by lazy { UserRenameEvent(linkFacade) }
