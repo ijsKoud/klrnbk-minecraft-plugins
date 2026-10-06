@@ -11,7 +11,6 @@ import nl.klrnbk.minecraft.plugins.identity.api.IdentityApi
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import nl.klrnbk.minecraft.plugins.identity.api.models.IdentityPlayer
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -100,13 +99,12 @@ class LinkFacadeTest {
         assertNotEquals(LanguageKeys.LINK_CODE_LOOKUP_SUCCESS, message.messageKey())
     }
 
-    @Disabled(
-        "Known bug: lookupPlayer answers an unknown player with the unlink-failed message (\"not allowed to unlink\") " +
-            "instead of lookup.failed.",
-    )
     @Test
     fun `lookup of a player Identity does not know uses the lookup failure message`() {
-        assertEquals(LanguageKeys.LINK_CODE_LOOKUP_FAILED, facade.lookupPlayer("Nobody").messageKey())
+        val message = facade.lookupPlayer("Nobody")
+
+        assertEquals(LanguageKeys.LINK_CODE_LOOKUP_FAILED, message.messageKey())
+        assertEquals("Nobody", (message.messageArguments().single() as TextComponent).content())
     }
 
     // getLinkCodeForPlayer
@@ -185,10 +183,6 @@ class LinkFacadeTest {
         assertEquals(LanguageKeys.LINK_CODE_INVALID, facade.linkPlayer(code, "222", "bob#1", false))
     }
 
-    @Disabled(
-        "Known bug: getCodeDetailsForPlayerByCode doesn't check validUntil, so an expired code still links until " +
-            "the once-a-minute cleanup task has deleted it.",
-    )
     @Test
     fun `an expired code that is not cleaned up yet is invalid`() {
         val code = codeOf(alice)
@@ -277,9 +271,10 @@ class LinkFacadeTest {
     }
 
     @Test
-    fun `unlinking a player who never linked is rejected`() {
-        // There is no link row to check the cooldown of, so this surfaces as an exception for the platform to report.
-        assertThrows(IllegalArgumentException::class.java) { facade.unlinkPlayer(alice.playerUuid(), false, false) }
+    fun `unlinking a player who never linked is a failure message`() {
+        val message = facade.unlinkPlayer(alice.playerUuid(), isForced = false, isBypassed = false)
+
+        assertEquals(LanguageKeys.LINK_CODE_UNLINK_FAILED, message.messageKey())
     }
 
     @Test
