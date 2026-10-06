@@ -2,7 +2,6 @@ package nl.klrnbk.minecraft.plugins.discordId.velocity.commands
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.command.CommandManager
@@ -15,7 +14,6 @@ import nl.klrnbk.minecraft.plugins.discordId.common.LanguageKeys
 import nl.klrnbk.minecraft.plugins.discordId.common.Permissions
 import nl.klrnbk.minecraft.plugins.discordId.common.facades.AdminCommandsFacade
 import nl.klrnbk.minecraft.plugins.discordId.common.facades.LinkFacade
-import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import nl.klrnbk.minecraft.plugins.pkgs.i18n.factories.MessageFactory
 import java.nio.file.Path
 import kotlin.uuid.toKotlinUuid
@@ -29,8 +27,6 @@ class DiscordIdCommand
         @DataDirectory private val dataDirectory: Path,
     ) : Command {
         override fun configure(): BrigadierCommand {
-            val identityApi = IdentityProvider.get()
-
             val commandNode =
                 BrigadierCommand
                     .literalArgumentBuilder("discordId")
@@ -44,12 +40,8 @@ class DiscordIdCommand
                         BrigadierCommand
                             .literalArgumentBuilder("import")
                             .requires { source -> source.hasPermission(Permissions.ADMIN_IMPORT) }
-                            .then(
-                                BrigadierCommand
-                                    .requiredArgumentBuilder("file", StringArgumentType.string())
-                                    .executes(::executeImport)
-                                    .build(),
-                            ).build(),
+                            .executes(::executeImport)
+                            .build(),
                     ).then(
                         BrigadierCommand
                             .literalArgumentBuilder("export")
@@ -72,28 +64,14 @@ class DiscordIdCommand
                         BrigadierCommand
                             .literalArgumentBuilder("lookup")
                             .requires { source -> source.hasPermission(Permissions.LOOKUP) }
-                            .then(
-                                BrigadierCommand
-                                    .requiredArgumentBuilder("player", StringArgumentType.string())
-                                    .suggests { _, builder ->
-                                        identityApi.getPlayerNames(builder.remaining).forEach(builder::suggest)
-                                        builder.buildFuture()
-                                    }.executes(::executeLookup)
-                                    .build(),
-                            ).build(),
+                            .executes(::executeLookup)
+                            .build(),
                     ).then(
                         BrigadierCommand
                             .literalArgumentBuilder("adminunlink")
                             .requires { source -> source.hasPermission(Permissions.UNLINK_FORCED) }
-                            .then(
-                                BrigadierCommand
-                                    .requiredArgumentBuilder("player", StringArgumentType.string())
-                                    .suggests { _, builder ->
-                                        identityApi.getPlayerNames(builder.remaining).forEach(builder::suggest)
-                                        builder.buildFuture()
-                                    }.executes(::executeUnlinkForced)
-                                    .build(),
-                            ).build(),
+                            .executes(::executeUnlinkForced)
+                            .build(),
                     ).build()
 
             return BrigadierCommand(commandNode)
@@ -157,16 +135,16 @@ class DiscordIdCommand
         }
 
         private fun executeUnlinkForced(source: CommandContext<CommandSource>): Int {
-            val player = source.getArgument("player", String::class.java)
-            val message = linkFacade.forceUnlinkPlayer(player)
+            val player = source.getArgument("player", Player::class.java)
+            val message = linkFacade.unlinkPlayer(player.uniqueId.toKotlinUuid(), isForced = true, isBypassed = true)
             source.source.sendMessage(message)
 
             return 0
         }
 
         private fun executeLookup(source: CommandContext<CommandSource>): Int {
-            val player = source.getArgument("player", String::class.java)
-            val message = linkFacade.lookupPlayer(player)
+            val player = source.getArgument("player", Player::class.java)
+            val message = linkFacade.lookupPlayer(player.uniqueId.toKotlinUuid())
             source.source.sendMessage(message)
 
             return 0

@@ -21,7 +21,7 @@ class PluginFacade
         private val commandRegistryService: CommandRegistryService,
         private val logger: Logger,
     ) {
-        private val translationService = TranslationService(Key.key("discord-id", "velocity"))
+        private val translationService = TranslationService(Key.key("discordId", "velocity"))
 
         fun start(plugin: VelocityPlugin) {
             val config = configService.load(plugin.dataDirectory)
@@ -34,8 +34,8 @@ class PluginFacade
         }
 
         fun stop() {
-            botMain.stop()
             databaseService.stop()
+            botMain.stop()
             logger.info("Plugin stopped on Velocity.")
         }
     }
