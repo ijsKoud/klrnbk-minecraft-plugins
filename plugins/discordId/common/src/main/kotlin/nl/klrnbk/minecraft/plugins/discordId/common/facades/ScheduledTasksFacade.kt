@@ -3,6 +3,8 @@ package nl.klrnbk.minecraft.plugins.discordId.common.facades
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.exceptions.ErrorResponseException
+import net.dv8tion.jda.api.requests.ErrorResponse
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
@@ -95,10 +97,15 @@ class ScheduledTasksFacade
                         }
                     },
                     { exception ->
-                        logger.error(
-                            "Failed to retrieve member for Discord ID ${it.discordId} while checking for player link differences.",
-                            exception,
-                        )
+                        if (exception is ErrorResponseException && exception.errorResponse == ErrorResponse.UNKNOWN_MEMBER) {
+                            // The user left the server, so they can't be boosting it anymore.
+                            if (it.isBooster) playerLinkService.updateBoosterStatusForLinkedPlayer(it.identityId, false)
+                        } else {
+                            logger.error(
+                                "Failed to retrieve member for Discord ID ${it.discordId} while checking for player link differences.",
+                                exception,
+                            )
+                        }
                     },
                 )
             }

@@ -2,6 +2,7 @@ package nl.klrnbk.minecraft.plugins.discordId.common.bot.events
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -27,5 +28,13 @@ class RoleChangeEvent
             val isBoosterRole = event.roles.find { it.id == config.discord.boosterRole } != null
 
             if (isBoosterRole) linkFacade.updateDiscordBoosterStatusForLinkedPlayer(event.user.id, false)
+        }
+
+        override fun onGuildMemberRemove(event: GuildMemberRemoveEvent) {
+            val boosterRole = configService.getConfig().discord.boosterRole ?: return
+            // Only leaving the server that has the booster role ends the boost.
+            if (event.guild.getRoleById(boosterRole) == null) return
+
+            linkFacade.updateDiscordBoosterStatusForLinkedPlayer(event.user.id, false)
         }
     }
