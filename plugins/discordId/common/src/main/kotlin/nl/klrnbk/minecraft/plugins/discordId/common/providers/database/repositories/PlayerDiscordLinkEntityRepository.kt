@@ -1,10 +1,10 @@
-package nl.klrnbk.minecraft.plugins.discordId.common.database.repositories
+package nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import nl.klrnbk.minecraft.packages.database.BaseRepository
 import nl.klrnbk.minecraft.packages.database.DatabaseContext
-import nl.klrnbk.minecraft.plugins.discordId.common.database.models.PlayerDiscordLinkEntity
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkEntity
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 

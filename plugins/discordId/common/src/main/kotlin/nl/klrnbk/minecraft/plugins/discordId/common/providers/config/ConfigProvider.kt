@@ -1,9 +1,9 @@
-package nl.klrnbk.minecraft.plugins.discordId.common.config
+package nl.klrnbk.minecraft.plugins.discordId.common.providers.config
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import nl.klrnbk.minecraft.packages.config.yaml.YamlConfigStore
-import nl.klrnbk.minecraft.plugins.discordId.common.config.models.DiscordIdPluginConfig
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.config.models.DiscordIdPluginConfig
 import java.nio.file.Path
 
 @Singleton

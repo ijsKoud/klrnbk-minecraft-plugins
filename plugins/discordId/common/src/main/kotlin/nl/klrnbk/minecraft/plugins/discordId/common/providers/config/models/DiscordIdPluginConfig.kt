@@ -1,4 +1,4 @@
-package nl.klrnbk.minecraft.plugins.discordId.common.config.models
+package nl.klrnbk.minecraft.plugins.discordId.common.providers.config.models
 
 import nl.klrnbk.minecraft.packages.database.DatasourceConfig
 
