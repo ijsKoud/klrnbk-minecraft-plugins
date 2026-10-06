@@ -58,7 +58,7 @@ class ScheduledTasksFacade
             scheduler.shutdown()
 
             try {
-                if (!scheduler.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
                     scheduler.shutdownNow()
                 }
             } catch (e: InterruptedException) {

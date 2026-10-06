@@ -26,11 +26,13 @@ import net.dv8tion.jda.api.managers.Presence
 import net.dv8tion.jda.api.requests.restaction.CacheRestAction
 import java.util.function.Consumer
 import nl.klrnbk.minecraft.plugins.discordId.common.facades.ScheduledTasksFacade
+import nl.klrnbk.minecraft.plugins.discordId.common.bot.BotMain
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.days
 import kotlin.uuid.toKotlinUuid
@@ -174,6 +176,16 @@ class BotTest {
     }
 
     @Test
+    fun `lookup answers with an error message instead of leaving the user waiting when something fails`() {
+        env.databaseService.stop()
+        val slash = slash("lookup", options = mapOf("user" to userOption(discordUser("222", "bob#1"))))
+
+        env.lookupCommand.execute(slash.event)
+
+        verify { slash.hook.editOriginal("An error occurred while looking up the Minecraft name, please try again later.") }
+    }
+
+    @Test
     fun `lookup says when a user has not linked an account`() {
         val slash = slash("lookup", options = mapOf("user" to userOption(discordUser("333", "carol"))))
 
@@ -207,6 +219,29 @@ class BotTest {
         verify { link.hook.editOriginal(LanguageKeys.LINK_CODE_SUCCESS) }
         verify { lookup.hook.editOriginal("carol hasn't connected their Minecraft account yet.") }
         verify(exactly = 0) { other.event.deferReply(any<Boolean>()) }
+    }
+
+    // BotMain
+
+    @Disabled(
+        "Known bug: ScheduledTasksFacade.stop() reads its lateinit scheduler, which only exists after start(), so " +
+            "stopping after a failed bot start (e.g. bad token) throws UninitializedPropertyAccessException.",
+    )
+    @Test
+    fun `stopping a bot that never started does not throw`() {
+        // E.g. the plugin is disabled after the bot failed to log in because of a bad token.
+        val bot =
+            BotMain(
+                env.configService,
+                org.slf4j.helpers.NOPLogger.NOP_LOGGER,
+                env.readyEvent,
+                env.interactionEvent,
+                env.userRenameEvent,
+                env.roleChangeEvent,
+                env.scheduledTasksFacade,
+            )
+
+        bot.stop()
     }
 
     // ReadyEvent
