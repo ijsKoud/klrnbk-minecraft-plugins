@@ -41,8 +41,8 @@ class DatabaseServiceTest {
     }
 
     @Test
-    fun `only the links are exported, not the short-lived link codes`() {
-        assertEquals(listOf(PlayerDiscordLinkTable), DatabaseService.EXPORT_TABLES)
+    fun `the links and the audit log are exported, not the short-lived link codes`() {
+        assertEquals(listOf(PlayerDiscordLinkTable, AuditLogEntityTable), DatabaseService.EXPORT_TABLES)
     }
 
     @Test

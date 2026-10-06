@@ -1,6 +1,8 @@
 package nl.klrnbk.minecraft.plugins.discordId.common
 
 import net.kyori.adventure.text.TextComponent
+import nl.klrnbk.minecraft.packages.database.QueryPagination
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogAction
 import nl.klrnbk.minecraft.packages.database.transfer.DatabaseTransferException
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import org.junit.jupiter.api.AfterEach
@@ -47,6 +49,7 @@ class AdminCommandsFacadeTest {
         env.linkRepository.create(identityId, "111", "alice#1", true)
         val codeOwner = Uuid.random()
         env.codeRepository.create(codeOwner)
+        env.auditLogService.log(AuditLogAction.LINK, identityId, identityId, "111", "alice#1")
         val fileName = (env.adminCommandsFacade.exportData(env.dataDirectory, null).messageArguments().first() as TextComponent).content()
 
         // Restore into freshly created, empty tables.
@@ -58,10 +61,14 @@ class AdminCommandsFacadeTest {
         val message = env.adminCommandsFacade.importData(env.dataDirectory.resolve("restored"), fileName, null)
 
         assertEquals(LanguageKeys.LINK_CODE_IMPORT_SUCCESS, message.messageKey())
-        // Link codes are short-lived and not part of an export, only the links are.
-        assertEquals("1", (message.messageArguments().single() as TextComponent).content())
+        // Link codes are short-lived and not part of an export: the link and the audit log entry are.
+        assertEquals("2", (message.messageArguments().single() as TextComponent).content())
         assertEquals("111", env.linkRepository.findByIdentityId(identityId)?.discordId)
         assertNull(env.codeRepository.findByEntityId(codeOwner))
+        // The restored entry, and the import itself.
+        val logs = env.auditLogService.getLogs(QueryPagination())
+        assertEquals(setOf(AuditLogAction.LINK, AuditLogAction.IMPORT), logs.map { it.action }.toSet())
+        assertEquals("alice#1", logs.first { it.action == AuditLogAction.LINK }.details)
     }
 
     @Test

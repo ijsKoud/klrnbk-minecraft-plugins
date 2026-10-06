@@ -117,7 +117,7 @@ class DiscordIdCommand
             val message =
                 MessageFactory
                     .factory()
-                    .appendAndParseWithMiniMessage(LanguageKeys.LINK_CODE_RELOAD_SUCCESS)
+                    .appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_RELOAD_SUCCESS)
                     .build()
 
             source.source.sendMessage(message)

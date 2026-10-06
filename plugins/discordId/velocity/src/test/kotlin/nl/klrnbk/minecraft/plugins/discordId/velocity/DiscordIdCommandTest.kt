@@ -236,6 +236,17 @@ class DiscordIdCommandTest {
     }
 
     @Test
+    fun `reload answers with the translated success message and is logged`() {
+        run("discordId reload", console(Permissions.ADMIN_RELOAD))
+
+        assertEquals(LanguageKeys.LINK_CODE_RELOAD_SUCCESS, lastMessage().messageKey())
+        assertEquals(
+            nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogAction.RELOAD,
+            env.auditLogService.getLogs(nl.klrnbk.minecraft.packages.database.QueryPagination()).single().action,
+        )
+    }
+
+    @Test
     fun `import of a missing file reports the failure`() {
         run("discordId import missing.zip", console(Permissions.ADMIN_IMPORT))
 

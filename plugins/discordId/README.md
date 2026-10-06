@@ -47,7 +47,7 @@ All commands are subcommands of `/discordid` (aliases: `/klrnbk-discordid`, on V
 | `/discordid lookup <player>` | `klrnbk.discord-id.lookup` | Show the Discord account of a player. |
 | `/discordid adminunlink <player>` | `klrnbk.discord-id.unlink.force` | Unlink a player, ignoring the cooldown. |
 | `/discordid reload` | `klrnbk.discord-id.admin.reload` | Reload the config, the database connection and the bot. |
-| `/discordid export` | `klrnbk.discord-id.admin.export` | Export all links to a new zip in the plugin's `exports` folder. |
+| `/discordid export` | `klrnbk.discord-id.admin.export` | Export all links and the audit log to a new zip in the plugin's `exports` folder. |
 | `/discordid import <file>` | `klrnbk.discord-id.admin.import` | Import a file from the `exports` folder. Only works on an empty database, all or nothing. |
 
 Other permission: `klrnbk.discord-id.unlink.bypass` lets a player unlink during the cooldown.
@@ -100,8 +100,9 @@ name. The actor is the Identity ID of the sender, and empty for the console. Ent
 `logs.purge-logs-after-days` are removed daily, and refused actions (for example an unlink during the cooldown) are not
 logged. A failure to write an entry is reported in the console and never fails the action itself.
 
-The log is stored in the `discord_id_audit_logs` table. There is no command to read it yet, and it is not part of
-`/discordid export`.
+The log is stored in the `discord_id_audit_logs` table and is part of `/discordid export` and `/discordid import`
+(together with the links, not the short-lived link codes). There is no command to read it yet.
+An export made before the audit log existed doesn't match the tables anymore and can't be imported.
 
 ## Messages
 

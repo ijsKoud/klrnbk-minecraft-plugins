@@ -144,6 +144,6 @@ class DatabaseService
              */
             val TABLES: List<IdTable<*>> = listOf(PlayerDiscordLinkTable, PlayerDiscordLinkCodeTable, AuditLogEntityTable)
 
-            val EXPORT_TABLES = listOf(PlayerDiscordLinkTable)
+            val EXPORT_TABLES = listOf(PlayerDiscordLinkTable, AuditLogEntityTable)
         }
     }
