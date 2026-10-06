@@ -30,17 +30,23 @@ open class BotMain
         open fun start() {
             logger.info("Discord bot is starting...")
 
-            discordApi = JDABuilder.createLight(configService.getConfig().discord.botToken).build()
-            discordApi.addEventListener(readyEvent)
-            discordApi.addEventListener(interactionEvent)
-            discordApi.addEventListener(userRenameEvent)
-            discordApi.addEventListener(userChangeEvent)
+            try {
+                discordApi = JDABuilder.createDefault(configService.getConfig().discord.botToken).build()
+                discordApi.addEventListener(readyEvent)
+                discordApi.addEventListener(interactionEvent)
+                discordApi.addEventListener(userRenameEvent)
+                discordApi.addEventListener(userChangeEvent)
+            } catch (e: Exception) {
+                logger.error("Failed to start Discord bot, possibly a token that is misconfigured?", e)
+            }
+
             scheduledTasksFacade.start(discordApi)
         }
 
         open fun stop() {
             logger.info("Discord bot is stopping...")
-            discordApi.shutdown()
+
             scheduledTasksFacade.stop()
+            if (::discordApi.isInitialized) discordApi.shutdown()
         }
     }
