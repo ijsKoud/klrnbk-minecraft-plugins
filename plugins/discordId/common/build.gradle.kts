@@ -9,4 +9,7 @@ dependencies {
     implementation(project(":packages:common-constants"))
     implementation(project(":packages:common-cryptography"))
     implementation(project(":packages:config-yaml"))
+
+    compileOnly(libs.adventure.api)
+    compileOnly(libs.adventure.minimessage)
 }
