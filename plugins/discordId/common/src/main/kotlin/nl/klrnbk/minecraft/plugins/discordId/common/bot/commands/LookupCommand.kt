@@ -3,6 +3,8 @@ package nl.klrnbk.minecraft.plugins.discordId.common.bot.commands
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.InteractionContextType
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
@@ -37,4 +39,6 @@ class LookupCommand
             Commands
                 .slash("lookup", "Find the Minecraft username of a Discord user.")
                 .addOption(OptionType.USER, "user", "The Discord user to look up.", true)
+                .setDefaultPermissions(DefaultMemberPermissions.DISABLED)
+                .setContexts(InteractionContextType.GUILD)
     }
