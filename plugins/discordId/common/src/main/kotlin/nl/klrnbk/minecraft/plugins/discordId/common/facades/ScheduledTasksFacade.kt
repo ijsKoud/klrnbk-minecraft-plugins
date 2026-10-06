@@ -20,13 +20,13 @@ class ScheduledTasksFacade
                 .newScheduledThreadPool(1)
 
         fun start(jda: JDA) {
-            // We schedule a task to check for player link differences every 60 minutes,
+            // We schedule a task to check for player link differences every 4 hours,
             // with an initial delay of 10 minutes, the delay is to prevent a race condition where the bot starts and checks are already started.
             // This check is to ensure that the linked players in the database are up to date with the Discord usernames and booster roles after for example an outage or downtime.
             scheduler.scheduleWithFixedDelay(
                 { checkForPlayerLinkDifferences(jda) },
                 10,
-                60,
+                240,
                 java.util.concurrent.TimeUnit.MINUTES,
             )
         }
