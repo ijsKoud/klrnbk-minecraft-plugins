@@ -44,8 +44,12 @@ class DiscordIdCommand
                         BrigadierCommand
                             .literalArgumentBuilder("import")
                             .requires { source -> source.hasPermission(Permissions.ADMIN_IMPORT) }
-                            .executes(::executeImport)
-                            .build(),
+                            .then(
+                                BrigadierCommand
+                                    .requiredArgumentBuilder("file", StringArgumentType.string())
+                                    .executes(::executeImport)
+                                    .build(),
+                            ).build(),
                     ).then(
                         BrigadierCommand
                             .literalArgumentBuilder("export")
@@ -81,8 +85,15 @@ class DiscordIdCommand
                         BrigadierCommand
                             .literalArgumentBuilder("adminunlink")
                             .requires { source -> source.hasPermission(Permissions.UNLINK_FORCED) }
-                            .executes(::executeUnlinkForced)
-                            .build(),
+                            .then(
+                                BrigadierCommand
+                                    .requiredArgumentBuilder("player", StringArgumentType.string())
+                                    .suggests { _, builder ->
+                                        identityApi.getPlayerNames(builder.remaining).forEach(builder::suggest)
+                                        builder.buildFuture()
+                                    }.executes(::executeUnlinkForced)
+                                    .build(),
+                            ).build(),
                     ).build()
 
             return BrigadierCommand(commandNode)
