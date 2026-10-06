@@ -48,10 +48,6 @@ class PlayerLinkService
             playerDiscordLinkEntityRepository.findByIdentityId(identityId)
                 ?: throw IllegalArgumentException("Player is not linked to a Discord account")
 
-            if (canUnlinkDiscordFromPlayer(identityId).not()) {
-                throw IllegalArgumentException("Player is not allowed to unlink their Discord account yet")
-            }
-
             val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, null, null, false)
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
