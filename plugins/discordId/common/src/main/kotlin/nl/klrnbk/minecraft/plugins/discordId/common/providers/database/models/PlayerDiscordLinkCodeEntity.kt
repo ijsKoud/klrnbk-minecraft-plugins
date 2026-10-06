@@ -10,6 +10,10 @@ import kotlin.uuid.Uuid
 object PlayerDiscordLinkCodeTable : UuidTable("player_discord_link_code") {
     val validUntil = timestamp("valid_until")
     val code = varchar("code", 50)
+
+    init {
+        index(true, code)
+    }
 }
 
 class PlayerDiscordLinkCodeEntity(
