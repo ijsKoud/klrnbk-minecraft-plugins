@@ -13,7 +13,4 @@ dependencies {
     compileOnly(project(":plugins:identity:api"))
 
     testImplementation(libs.mockk)
-    testImplementation(project(":packages:config-yaml"))
-    testImplementation(project(":plugins:identity:api"))
-    testImplementation(testFixtures(project(":plugins:discordId:common")))
 }
