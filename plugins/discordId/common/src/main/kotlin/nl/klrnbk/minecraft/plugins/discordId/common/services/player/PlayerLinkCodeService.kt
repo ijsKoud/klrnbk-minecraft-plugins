@@ -5,6 +5,7 @@ import com.google.inject.Singleton
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories.PlayerDiscordLinkCodeEntityRepository
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.models.PlayerLinkCode
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.transformers.fromEntity
+import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -17,6 +18,13 @@ class PlayerLinkCodeService
             val entity =
                 playerDiscordLinkCodeEntityRepository.findByEntityId(playerIdentityId)
                     ?: playerDiscordLinkCodeEntityRepository.create(playerIdentityId)
+
+            if (entity.validUntil < Clock.System.now()) {
+                playerDiscordLinkCodeEntityRepository.delete(playerIdentityId)
+                val newEntity = playerDiscordLinkCodeEntityRepository.create(playerIdentityId)
+
+                return PlayerLinkCode.fromEntity(newEntity)
+            }
 
             return PlayerLinkCode.fromEntity(entity)
         }
