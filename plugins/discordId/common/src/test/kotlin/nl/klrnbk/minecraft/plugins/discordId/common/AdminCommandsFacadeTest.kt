@@ -6,6 +6,7 @@ import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -44,7 +45,8 @@ class AdminCommandsFacadeTest {
     fun `an export can be imported into an empty database`() {
         val identityId = Uuid.random()
         env.linkRepository.create(identityId, "111", "alice#1", true)
-        env.codeRepository.create(Uuid.random())
+        val codeOwner = Uuid.random()
+        env.codeRepository.create(codeOwner)
         val fileName = (env.adminCommandsFacade.exportData(env.dataDirectory).messageArguments().first() as TextComponent).content()
 
         // Restore into freshly created, empty tables.
@@ -56,8 +58,10 @@ class AdminCommandsFacadeTest {
         val message = env.adminCommandsFacade.importData(env.dataDirectory.resolve("restored"), fileName)
 
         assertEquals(LanguageKeys.LINK_CODE_IMPORT_SUCCESS, message.messageKey())
-        assertEquals("2", (message.messageArguments().single() as TextComponent).content())
+        // Link codes are short-lived and not part of an export, only the links are.
+        assertEquals("1", (message.messageArguments().single() as TextComponent).content())
         assertEquals("111", env.linkRepository.findByIdentityId(identityId)?.discordId)
+        assertNull(env.codeRepository.findByEntityId(codeOwner))
     }
 
     @Test

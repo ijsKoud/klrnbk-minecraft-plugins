@@ -40,6 +40,11 @@ class DatabaseServiceTest {
     }
 
     @Test
+    fun `only the links are exported, not the short-lived link codes`() {
+        assertEquals(listOf(PlayerDiscordLinkTable), DatabaseService.EXPORT_TABLES)
+    }
+
+    @Test
     fun `starting migrates both tables`() {
         env.start()
 
