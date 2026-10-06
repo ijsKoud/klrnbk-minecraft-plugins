@@ -45,7 +45,9 @@ tasks {
 
         if (!project.path.startsWith(":plugins:runtime:")) {
             exclude("kotlin/**")
-            exclude("kotlinx/**")
+            // kotlinx is NOT excluded: it is relocated above into a per-plugin package, and nothing
+            // else provides that relocated copy. Excluding it left references to
+            // <group>.libs.kotlinx.* with no classes (NoClassDefFoundError at startup).
             exclude("com/fasterxml/**")
             exclude("com/google/inject/**")
             // Guava's real package root is com/google/common (there is no com/google/guava) — the old
