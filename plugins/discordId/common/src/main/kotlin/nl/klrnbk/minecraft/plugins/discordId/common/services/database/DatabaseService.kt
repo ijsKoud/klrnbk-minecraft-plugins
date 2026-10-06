@@ -130,5 +130,7 @@ class DatabaseService
              * All tables of the plugin, in the order they can be restored (parents first).
              */
             val TABLES: List<IdTable<*>> = listOf(PlayerDiscordLinkTable, PlayerDiscordLinkCodeTable)
+
+            val EXPORT_TABLES = listOf(PlayerDiscordLinkTable)
         }
     }
