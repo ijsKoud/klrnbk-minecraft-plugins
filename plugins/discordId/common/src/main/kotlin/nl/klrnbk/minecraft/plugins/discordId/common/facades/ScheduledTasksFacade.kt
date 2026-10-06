@@ -86,12 +86,20 @@ class ScheduledTasksFacade
                     }
                 }
 
-                boosterRole?.guild?.retrieveMemberById(it.discordId)?.queue { member ->
-                    val hasBoosterRole = member.roles.any { role -> role.id == config.discord.boosterRole }
-                    if (hasBoosterRole != it.isBooster) {
-                        playerLinkService.updateBoosterStatusForLinkedPlayer(it.identityId, hasBoosterRole)
-                    }
-                }
+                boosterRole?.guild?.retrieveMemberById(it.discordId)?.queue(
+                    { member ->
+                        val hasBoosterRole = member.roles.any { role -> role.id == config.discord.boosterRole }
+                        if (hasBoosterRole != it.isBooster) {
+                            playerLinkService.updateBoosterStatusForLinkedPlayer(it.identityId, hasBoosterRole)
+                        }
+                    },
+                    { exception ->
+                        logger.error(
+                            "Failed to retrieve member for Discord ID ${it.discordId} while checking for player link differences.",
+                            exception,
+                        )
+                    },
+                )
             }
 
             logger.debug("Finished checking for player link differences.")
