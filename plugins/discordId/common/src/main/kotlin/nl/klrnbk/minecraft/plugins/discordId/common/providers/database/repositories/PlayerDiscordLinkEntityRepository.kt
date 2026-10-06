@@ -8,6 +8,7 @@ import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.Pl
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkTable
 import org.jetbrains.exposed.v1.core.eq
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
@@ -57,14 +58,15 @@ class PlayerDiscordLinkEntityRepository
             discordId: String?,
             discordName: String?,
             isBooster: Boolean,
+            updateLastUpdatedAt: Boolean,
         ): PlayerDiscordLinkEntity =
             execute {
                 val playerEntity = findByIdentityId(identityId) ?: throw IllegalArgumentException("Player does not exist")
+                if (updateLastUpdatedAt) playerEntity.lastUpdatedAt = Clock.System.now()
 
                 playerEntity.discordId = discordId
                 playerEntity.discordName = discordName
                 playerEntity.isBooster = isBooster
-                playerEntity.lastUpdatedAt = Clock.System.now()
                 playerEntity
             }
     }

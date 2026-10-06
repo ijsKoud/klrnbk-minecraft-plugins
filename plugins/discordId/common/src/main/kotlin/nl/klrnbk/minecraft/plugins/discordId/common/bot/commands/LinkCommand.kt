@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import nl.klrnbk.minecraft.plugins.discordId.common.facades.LinkFacade
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
+import org.slf4j.Logger
 
 @Singleton
 class LinkCommand
@@ -15,6 +16,7 @@ class LinkCommand
     constructor(
         private val linkFacade: LinkFacade,
         private val configService: ConfigService,
+        private val logger: Logger,
     ) : Command {
         override fun execute(event: SlashCommandInteractionEvent) {
             val code = event.getOption("code")?.asString ?: return
@@ -22,9 +24,14 @@ class LinkCommand
 
             val config = configService.getConfig()
             val isBooster = event.member?.roles?.find { it.id == config.discord.boosterRole } != null
-            val result = linkFacade.linkPlayer(code, event.user.id, event.user.name, isBooster)
 
-            event.hook.editOriginal(result).queue()
+            try {
+                val result = linkFacade.linkPlayer(code, event.user.id, event.user.name, isBooster)
+                event.hook.editOriginal(result).queue()
+            } catch (e: Exception) {
+                event.hook.editOriginal("An error occurred while linking your account, please try again later.").queue()
+                logger.error("Error while linking Discord user ${event.user.id}", e)
+            }
         }
 
         override fun register(): CommandData =

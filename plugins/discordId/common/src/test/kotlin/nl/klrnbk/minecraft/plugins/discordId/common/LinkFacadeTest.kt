@@ -281,15 +281,34 @@ class LinkFacadeTest {
     fun `an admin can force unlink during the cooldown`() {
         link(alice, "111")
 
-        val message = facade.forceUnlinkPlayer("alice")
+        val message = facade.forceUnlinkPlayer("alice", null)
 
         assertEquals(LanguageKeys.LINK_CODE_UNLINK_SUCCESS, message.messageKey())
         assertFalse(checkNotNull(env.linkService.getLinkDetailsByIdentityId(alice.identityId())).isLinked)
     }
 
     @Test
+    fun `force unlinking a player who never linked is a failure message`() {
+        val message = facade.forceUnlinkPlayer("alice", null)
+
+        assertEquals(LanguageKeys.LINK_CODE_UNLINK_FAILED, message.messageKey())
+    }
+
+    @Test
+    fun `unlinking a player who already unlinked changes nothing, not even when forced`() {
+        link(alice, "111")
+        env.linkService.unlinkDiscordFromPlayer(alice.identityId())
+        val before = checkNotNull(env.linkService.getLinkDetailsByIdentityId(alice.identityId())).lastUpdatedAt
+
+        val message = facade.forceUnlinkPlayer("alice", null)
+
+        assertEquals(LanguageKeys.LINK_CODE_UNLINK_FAILED, message.messageKey())
+        assertEquals(before, checkNotNull(env.linkService.getLinkDetailsByIdentityId(alice.identityId())).lastUpdatedAt)
+    }
+
+    @Test
     fun `force unlinking an unknown player is a failure message`() {
-        assertEquals(LanguageKeys.LINK_CODE_UNLINK_FAILED, facade.forceUnlinkPlayer("Nobody").messageKey())
+        assertEquals(LanguageKeys.LINK_CODE_UNLINK_FAILED, facade.forceUnlinkPlayer("Nobody", null).messageKey())
     }
 
     // Discord -> Minecraft and updates

@@ -7,6 +7,8 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import nl.klrnbk.minecraft.plugins.discordId.common.LanguageKeys
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogAction
+import nl.klrnbk.minecraft.plugins.discordId.common.services.audit.AuditLogService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkCodeService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
@@ -23,6 +25,7 @@ class LinkFacade
     constructor(
         private val playerDiscordLinkService: PlayerLinkService,
         private val playerLinkCodeService: PlayerLinkCodeService,
+        private val auditLogService: AuditLogService,
     ) {
         private val identityApi = IdentityProvider.get()
 
@@ -54,23 +57,36 @@ class LinkFacade
                 ).build()
         }
 
-        fun forceUnlinkPlayer(playerName: String): TextComponent {
+        /**
+         * @param actorPlayerId the Minecraft UUID of the admin who runs the command, null for the console.
+         */
+        fun forceUnlinkPlayer(
+            playerName: String,
+            actorPlayerId: Uuid?,
+        ): TextComponent {
             val identityPlayer =
                 identityApi.getPlayerFromName(playerName)
                     ?: return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
 
-            return unlinkPlayer(identityPlayer.playerId.toKotlinUuid(), isForced = true, isBypassed = false)
+            return unlinkPlayer(identityPlayer.playerId.toKotlinUuid(), isForced = true, isBypassed = false, actorPlayerId = actorPlayerId)
         }
 
         fun unlinkPlayer(
             playerId: Uuid,
             isForced: Boolean,
             isBypassed: Boolean,
+            actorPlayerId: Uuid? = playerId.takeUnless { isForced },
         ): TextComponent {
             val identityPlayer =
                 identityApi.getPlayerFromUuid(playerId.toJavaUuid())
                     ?: throw IllegalArgumentException("Player does not exist on identity but should")
             val identityId = identityPlayer.id.toKotlinUuid()
+
+            // Nothing to unlink without a linked Discord account, also when forced or bypassed.
+            val linkDetails = playerDiscordLinkService.getLinkDetailsByIdentityId(identityId)
+            if (linkDetails == null || !linkDetails.isLinked) {
+                return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
+            }
 
             val canUnlink = playerDiscordLinkService.canUnlinkDiscordFromPlayer(identityId)
             if (!canUnlink && !isForced && !isBypassed) {
@@ -78,6 +94,12 @@ class LinkFacade
             }
 
             playerDiscordLinkService.unlinkDiscordFromPlayer(identityId)
+            auditLogService.log(
+                action = if (isForced) AuditLogAction.FORCE_UNLINK else AuditLogAction.UNLINK,
+                actorIdentityId = auditLogService.actorIdentityId(actorPlayerId),
+                targetIdentityId = identityId,
+                discordId = linkDetails.discordId,
+            )
             return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_SUCCESS).build()
         }
 
@@ -104,6 +126,13 @@ class LinkFacade
 
             playerDiscordLinkService.linkDiscordWithPlayer(identityId, discordId, discordName, isBooster)
             playerLinkCodeService.deleteCodeDetailsForPlayer(codeDetails.playerEntityId)
+            auditLogService.log(
+                action = AuditLogAction.LINK,
+                actorIdentityId = identityId,
+                targetIdentityId = identityId,
+                discordId = discordId,
+                details = discordName,
+            )
             return LanguageKeys.LINK_CODE_SUCCESS
         }
 

@@ -31,7 +31,7 @@ class DataTransferService
             val file = directory.resolve("discordId-export-${TIMESTAMP_FORMAT.format(LocalDateTime.now())}.zip")
 
             logger.info("Exporting data to ${file.name}...")
-            val result = databaseTransfer.export(DatabaseService.TABLES, file)
+            val result = databaseTransfer.export(DatabaseService.EXPORT_TABLES, file)
             logger.info("Exported ${result.totalRows} rows to ${file.name}.")
 
             return ExportOutcome(file.name, result)
@@ -55,7 +55,7 @@ class DataTransferService
             if (!Files.isRegularFile(file)) throw DatabaseTransferException("There is no file named $fileName in the exports folder.")
 
             logger.info("Importing data from $fileName...")
-            val result = databaseTransfer.import(DatabaseService.TABLES, file)
+            val result = databaseTransfer.import(DatabaseService.EXPORT_TABLES, file)
             logger.info("Imported ${result.totalRows} rows from $fileName.")
 
             return result

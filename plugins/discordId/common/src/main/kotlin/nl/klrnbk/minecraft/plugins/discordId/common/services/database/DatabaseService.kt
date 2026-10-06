@@ -5,8 +5,10 @@ import com.google.inject.Singleton
 import nl.klrnbk.minecraft.packages.database.DatabaseConnectionMonitor
 import nl.klrnbk.minecraft.packages.database.DatasourceConfig
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.DatasourceProvider
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogEntityTable
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkCodeTable
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkTable
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories.AuditLogEntityRepository
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories.PlayerDiscordLinkCodeEntityRepository
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
@@ -14,6 +16,8 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import org.slf4j.Logger
 import java.nio.file.Path
+import kotlin.time.Clock
+import kotlin.time.Duration
 
 @Singleton
 class DatabaseService
@@ -21,6 +25,7 @@ class DatabaseService
     constructor(
         private val datasourceProvider: DatasourceProvider,
         private val playerDiscordLinkCodeEntityRepository: PlayerDiscordLinkCodeEntityRepository,
+        private val auditLogEntityRepository: AuditLogEntityRepository,
         private val logger: Logger,
     ) {
         private var config: DatasourceConfig? = null
@@ -46,6 +51,14 @@ class DatabaseService
             connectAndMigrate(reconnect = true)
 
             logger.info("Database connection restarted.")
+        }
+
+        fun performLogsCleanup(retention: Duration) {
+            val cutoff = Clock.System.now().minus(retention)
+            logger.info("Deleting audit logs before $cutoff...")
+
+            val amount = auditLogEntityRepository.deleteBefore(cutoff)
+            logger.info("Deleted $amount audit logs before $cutoff")
         }
 
         fun performCleanup() {
@@ -129,6 +142,8 @@ class DatabaseService
             /**
              * All tables of the plugin, in the order they can be restored (parents first).
              */
-            val TABLES: List<IdTable<*>> = listOf(PlayerDiscordLinkTable, PlayerDiscordLinkCodeTable)
+            val TABLES: List<IdTable<*>> = listOf(PlayerDiscordLinkTable, PlayerDiscordLinkCodeTable, AuditLogEntityTable)
+
+            val EXPORT_TABLES = listOf(PlayerDiscordLinkTable, AuditLogEntityTable)
         }
     }

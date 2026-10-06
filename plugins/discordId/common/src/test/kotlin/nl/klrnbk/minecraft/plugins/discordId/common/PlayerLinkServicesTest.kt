@@ -87,6 +87,32 @@ class PlayerLinkServicesTest {
     }
 
     @Test
+    fun `username and booster updates do not restart the unlink cooldown`() {
+        env.linkService.linkDiscordWithPlayer(player, "discord-1", "alice", false)
+        env.ageLink(player, 31.days)
+        val before = checkNotNull(env.linkService.getLinkDetailsByIdentityId(player)).lastUpdatedAt
+
+        env.linkService.updateDiscordUsernameForLinkedPlayer(player, "alice2")
+        env.linkService.updateBoosterStatusForLinkedPlayer(player, true)
+
+        assertEquals(before, checkNotNull(env.linkService.getLinkDetailsByIdentityId(player)).lastUpdatedAt)
+        assertTrue(env.linkService.canUnlinkDiscordFromPlayer(player))
+    }
+
+    @Test
+    fun `linking and unlinking do start the cooldown`() {
+        env.linkService.linkDiscordWithPlayer(player, "discord-1", "alice", false)
+        env.ageLink(player, 31.days)
+        assertTrue(env.linkService.canUnlinkDiscordFromPlayer(player))
+
+        env.linkService.unlinkDiscordFromPlayer(player)
+        assertFalse(env.linkService.canRequestLinkCode(player))
+
+        env.linkService.linkDiscordWithPlayer(player, "discord-2", "alice", false)
+        assertFalse(env.linkService.canUnlinkDiscordFromPlayer(player))
+    }
+
+    @Test
     fun `updating an unknown player is rejected`() {
         assertThrows(IllegalArgumentException::class.java) { env.linkService.updateDiscordUsernameForLinkedPlayer(player, "x") }
         assertThrows(IllegalArgumentException::class.java) { env.linkService.updateBoosterStatusForLinkedPlayer(player, true) }

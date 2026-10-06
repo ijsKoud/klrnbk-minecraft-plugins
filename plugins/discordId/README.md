@@ -32,7 +32,8 @@ Rules:
 - After unlinking you can't request a new code until `unlink-cooldown` has passed, and you can't unlink before the
   cooldown since the link was made either (default 30 days). Players with `klrnbk.discord-id.unlink.bypass` and admins
   skip this.
-- `/lookup user:<user>` in Discord answers with the Minecraft name of a linked user. `/discordid lookup <player>` in
+- `/lookup user:<user>` in Discord answers with the Minecraft name of a linked user. It is only usable in servers and
+  disabled for everyone by default: allow it for the roles that should have it under *Server Settings -> Integrations*. `/discordid lookup <player>` in
   Minecraft shows the Discord account of a player.
 
 ## Commands
@@ -46,7 +47,7 @@ All commands are subcommands of `/discordid` (aliases: `/klrnbk-discordid`, on V
 | `/discordid lookup <player>` | `klrnbk.discord-id.lookup` | Show the Discord account of a player. |
 | `/discordid adminunlink <player>` | `klrnbk.discord-id.unlink.force` | Unlink a player, ignoring the cooldown. |
 | `/discordid reload` | `klrnbk.discord-id.admin.reload` | Reload the config, the database connection and the bot. |
-| `/discordid export` | `klrnbk.discord-id.admin.export` | Export all links to a new zip in the plugin's `exports` folder. |
+| `/discordid export` | `klrnbk.discord-id.admin.export` | Export all links and the audit log to a new zip in the plugin's `exports` folder. |
 | `/discordid import <file>` | `klrnbk.discord-id.admin.import` | Import a file from the `exports` folder. Only works on an empty database, all or nothing. |
 
 Other permission: `klrnbk.discord-id.unlink.bypass` lets a player unlink during the cooldown.
@@ -66,6 +67,8 @@ the `exports` folder of the new setup if needed, then import.
 | `discord.unlink-cooldown` | `2592000000` | Milliseconds (30 days) before a player may unlink, or request a new code after unlinking. |
 | `discord.status-message` | `Discord & Minecraft players` | Text of the bot's presence. |
 | `discord.status-type` | `3` | `0` Playing, `1` Streaming, `2` Listening, `3` Watching, `4` Custom, `5` Competing. |
+| `logs.enabled` | `true` | Write the audit log (see below). |
+| `logs.purge-logs-after-days` | `90` | Audit log entries older than this are removed (checked daily, while the bot runs). |
 | `database.type` | `SQLITE` | `SQLITE`, `MYSQL` (MariaDB) or `POSTGRESQL`. |
 | `database.host` / `port` / `database` / `username` / `password` | `localhost` / `3306` / `database.db` / `root` / `password` | Connection details. For `SQLITE`, `database` is a file in the plugin's data folder and the rest is ignored. |
 | `database.maximum-pool-size` | `10` | Size of the connection pool. |
@@ -81,10 +84,25 @@ codes are deleted every minute.
 4. Start the server. On startup the bot registers its global slash commands `/link` and `/lookup`, which can take a
    little while to show up in Discord.
 
-The bot is created with JDA's light configuration and requests no extra gateway intents, so no privileged intent has
-to be enabled in the portal. Because member and role-change events are not guaranteed without the privileged
-*Server Members* intent, a check every 4 hours (first one after 10 minutes) also repairs differing Discord usernames
-and booster statuses of linked players.
+The bot requests the privileged **Server Members** gateway intent so it receives role changes and username updates
+of linked players. Enable **Server Members Intent** under *Bot -> Privileged Gateway Intents* in the Developer Portal,
+or Discord refuses the connection. A check every 4 hours (first one after 10 minutes) also repairs differing Discord
+usernames and booster statuses of linked players, for example after downtime.
+
+If the bot can't log in (for example an invalid `discord.bot-token`), the error is logged and the plugin keeps
+running without the bot.
+
+## Audit log
+
+Every link, unlink, forced unlink, reload, export and import is stored in the database (`logs.enabled`, on by default)
+with a timestamp, who did it, the player it was about, the Discord account involved and details such as the export file
+name. The actor is the Identity ID of the sender, and empty for the console. Entries older than
+`logs.purge-logs-after-days` are removed daily, and refused actions (for example an unlink during the cooldown) are not
+logged. A failure to write an entry is reported in the console and never fails the action itself.
+
+The log is stored in the `discord_id_audit_logs` table and is part of `/discordid export` and `/discordid import`
+(together with the links, not the short-lived link codes). There is no command to read it yet.
+An export made before the audit log existed doesn't match the tables anymore and can't be imported.
 
 ## Messages
 

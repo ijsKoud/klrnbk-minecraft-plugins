@@ -12,18 +12,26 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.entities.channel.Channel
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.InteractionContextType
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
+import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.api.managers.Presence
+import net.dv8tion.jda.api.requests.ErrorResponse
+import net.dv8tion.jda.api.requests.restaction.CacheRestAction
+import java.util.function.Consumer
 import nl.klrnbk.minecraft.plugins.discordId.common.facades.ScheduledTasksFacade
+import nl.klrnbk.minecraft.plugins.discordId.common.bot.BotMain
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -128,6 +136,17 @@ class BotTest {
     }
 
     @Test
+    fun `link answers with an error message instead of leaving the user waiting when something fails`() {
+        val code = requestCode()
+        env.databaseService.stop()
+        val slash = slash("link", options = mapOf("code" to stringOption(code)))
+
+        env.linkCommand.execute(slash.event)
+
+        verify { slash.hook.editOriginal("An error occurred while linking your account, please try again later.") }
+    }
+
+    @Test
     fun `link does nothing without a code`() {
         val slash = slash("link")
 
@@ -161,6 +180,16 @@ class BotTest {
     }
 
     @Test
+    fun `lookup answers with an error message instead of leaving the user waiting when something fails`() {
+        env.databaseService.stop()
+        val slash = slash("lookup", options = mapOf("user" to userOption(discordUser("222", "bob#1"))))
+
+        env.lookupCommand.execute(slash.event)
+
+        verify { slash.hook.editOriginal("An error occurred while looking up the Minecraft name, please try again later.") }
+    }
+
+    @Test
     fun `lookup says when a user has not linked an account`() {
         val slash = slash("lookup", options = mapOf("user" to userOption(discordUser("333", "carol"))))
 
@@ -176,6 +205,21 @@ class BotTest {
         assertEquals("lookup", data.name)
         assertEquals(OptionType.USER, data.options.single().type)
         assertTrue(data.options.single().isRequired)
+    }
+
+    @Test
+    fun `lookup is hidden from everyone by default and only usable in servers`() {
+        val data = env.lookupCommand.register() as SlashCommandData
+
+        assertEquals(DefaultMemberPermissions.DISABLED, data.defaultPermissions)
+        assertEquals(setOf(InteractionContextType.GUILD), data.contexts)
+    }
+
+    @Test
+    fun `link stays enabled by default for everyone`() {
+        val data = env.linkCommand.register() as SlashCommandData
+
+        assertEquals(DefaultMemberPermissions.ENABLED, data.defaultPermissions)
     }
 
     // InteractionEvent
@@ -194,6 +238,25 @@ class BotTest {
         verify { link.hook.editOriginal(LanguageKeys.LINK_CODE_SUCCESS) }
         verify { lookup.hook.editOriginal("carol hasn't connected their Minecraft account yet.") }
         verify(exactly = 0) { other.event.deferReply(any<Boolean>()) }
+    }
+
+    // BotMain
+
+    @Test
+    fun `stopping a bot that never started does not throw`() {
+        // E.g. the plugin is disabled after the bot failed to log in because of a bad token.
+        val bot =
+            BotMain(
+                env.configService,
+                org.slf4j.helpers.NOPLogger.NOP_LOGGER,
+                env.readyEvent,
+                env.interactionEvent,
+                env.userRenameEvent,
+                env.roleChangeEvent,
+                env.scheduledTasksFacade,
+            )
+
+        bot.stop()
     }
 
     // ReadyEvent
@@ -342,8 +405,20 @@ class BotTest {
     private fun jdaWith(
         user: User?,
         member: Member?,
+        failure: Throwable = IllegalStateException("unknown member"),
     ): JDA {
-        val guild = mockk<Guild> { every { getMemberById(any<String>()) } returns member }
+        // retrieveMemberById(...).queue(success, failure) calls success with the member, or failure when Discord can't find them.
+        val retrieve =
+            mockk<CacheRestAction<Member>> {
+                every { queue(any<Consumer<in Member>>(), any<Consumer<in Throwable>>()) } answers {
+                    if (member != null) {
+                        firstArg<Consumer<in Member>>().accept(member)
+                    } else {
+                        secondArg<Consumer<in Throwable>>().accept(failure)
+                    }
+                }
+            }
+        val guild = mockk<Guild> { every { retrieveMemberById(any<String>()) } returns retrieve }
         val boosterRole =
             mockk<Role> {
                 every { this@mockk.guild } returns guild
@@ -378,8 +453,87 @@ class BotTest {
         assertFalse(checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId)).isBooster)
     }
 
+    private fun unknownMember(): ErrorResponseException =
+        mockk { every { errorResponse } returns ErrorResponse.UNKNOWN_MEMBER }
+
     @Test
-    fun `the periodic check leaves players alone that discord can not find`() {
+    fun `the periodic check clears the booster status of a member who left the server`() {
+        env.linkService.linkDiscordWithPlayer(identityId, "111", "same", true)
+        val jda = jdaWith(discordUser("111", "same"), null, unknownMember())
+
+        env.scheduledTasksFacade.checkForPlayerLinkDifferences(jda)
+
+        assertFalse(checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId)).isBooster)
+    }
+
+    @Test
+    fun `the periodic check leaves the booster status alone when retrieving a member fails for another reason`() {
+        env.linkService.linkDiscordWithPlayer(identityId, "111", "same", true)
+        val jda = jdaWith(discordUser("111", "same"), null, IllegalStateException("network error"))
+
+        env.scheduledTasksFacade.checkForPlayerLinkDifferences(jda)
+
+        assertTrue(checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId)).isBooster)
+    }
+
+    // Leaving the server
+
+    private fun memberLeft(
+        userId: String,
+        guildHasBoosterRole: Boolean = true,
+    ): GuildMemberRemoveEvent {
+        val guild = mockk<Guild> { every { getRoleById("booster-role") } returns if (guildHasBoosterRole) role("booster-role") else null }
+        return mockk {
+            every { this@mockk.guild } returns guild
+            every { user } returns discordUser(userId)
+        }
+    }
+
+    @Test
+    fun `a linked player who leaves the server is no longer a booster`() {
+        env.linkService.linkDiscordWithPlayer(identityId, "111", "alice#1", true)
+
+        env.roleChangeEvent.onGuildMemberRemove(memberLeft("111"))
+
+        val details = checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId))
+        assertFalse(details.isBooster)
+        assertEquals("111", details.discordId, "the link itself is kept")
+    }
+
+    @Test
+    fun `leaving a server without the booster role does not change anything`() {
+        env.linkService.linkDiscordWithPlayer(identityId, "111", "alice#1", true)
+
+        env.roleChangeEvent.onGuildMemberRemove(memberLeft("111", guildHasBoosterRole = false))
+
+        assertTrue(checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId)).isBooster)
+    }
+
+    @Test
+    fun `users who are not linked are ignored when they leave`() {
+        env.roleChangeEvent.onGuildMemberRemove(memberLeft("999"))
+
+        assertTrue(env.linkService.getAllLinkedPlayers().isEmpty())
+    }
+
+    @Test
+    fun `leaving does nothing when no booster role is configured`() {
+        val other = DiscordIdTestEnvironment().also { it.start() }
+        try {
+            other.linkService.linkDiscordWithPlayer(identityId, "111", "alice#1", true)
+            val guild = mockk<Guild>()
+            val event = mockk<GuildMemberRemoveEvent> { every { this@mockk.guild } returns guild }
+
+            other.roleChangeEvent.onGuildMemberRemove(event)
+
+            assertTrue(checkNotNull(other.linkService.getLinkDetailsByIdentityId(identityId)).isBooster)
+        } finally {
+            other.close()
+        }
+    }
+
+    @Test
+    fun `the periodic check logs members Discord can not find and leaves the player alone`() {
         env.linkService.linkDiscordWithPlayer(identityId, "111", "alice#1", true)
         env.ageLink(identityId, 1.days)
         val before = checkNotNull(env.linkService.getLinkDetailsByIdentityId(identityId))

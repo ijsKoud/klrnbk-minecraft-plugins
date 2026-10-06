@@ -165,6 +165,24 @@ class DiscordIdCommandTest {
     }
 
     @Test
+    fun `adminunlink is logged with the admin as the actor`() {
+        setUp()
+        grant(alice, Permissions.UNLINK_FORCED)
+        val bobId = bobIdentity.id.toKotlinUuid()
+        linkService.linkDiscordWithPlayer(bobId, "222", "bob#1", false)
+
+        server.dispatchCommand(alice, "discordid adminunlink Bob")
+
+        val entry =
+            harness.injector
+                .getInstance(nl.klrnbk.minecraft.plugins.discordId.common.services.audit.AuditLogService::class.java)
+                .getLogs(nl.klrnbk.minecraft.packages.database.QueryPagination())
+                .single()
+        assertEquals(aliceIdentity.id.toKotlinUuid(), entry.actorIdentityId)
+        assertEquals(bobId, entry.targetIdentityId)
+    }
+
+    @Test
     fun `export writes a file off the main thread and reports it`() {
         setUp()
         grant(alice, Permissions.ADMIN_EXPORT)

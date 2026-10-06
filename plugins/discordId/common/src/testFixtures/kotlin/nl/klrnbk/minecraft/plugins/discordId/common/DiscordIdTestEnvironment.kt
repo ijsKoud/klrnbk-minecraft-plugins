@@ -18,9 +18,12 @@ import nl.klrnbk.minecraft.plugins.discordId.common.facades.ScheduledTasksFacade
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.config.ConfigProvider
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.config.models.DiscordIdPluginConfig
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.config.models.DiscordIdPluginDiscordConfig
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.config.models.DiscordIdPluginLogsConfig
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.DatasourceProvider
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories.AuditLogEntityRepository
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories.PlayerDiscordLinkCodeEntityRepository
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.repositories.PlayerDiscordLinkEntityRepository
+import nl.klrnbk.minecraft.plugins.discordId.common.services.audit.AuditLogService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DataTransferService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
@@ -48,6 +51,7 @@ class DiscordIdTestEnvironment(
     boosterRole: String? = null,
     unlinkCooldownMillis: Long = DiscordIdPluginDiscordConfig().unlinkCooldown,
     useProxy: Boolean = false,
+    logsEnabled: Boolean = true,
 ) {
     val dataDirectory: Path = Files.createTempDirectory("discord-id-test")
     val datasourceConfig = DatasourceConfig(type = DatasourceType.SQLITE, database = "test.db")
@@ -59,6 +63,7 @@ class DiscordIdTestEnvironment(
                 dataDirectory,
                 DiscordIdPluginConfig(
                     useProxy = useProxy,
+                    logs = DiscordIdPluginLogsConfig(enabled = logsEnabled),
                     database = datasourceConfig,
                     discord =
                         DiscordIdPluginDiscordConfig(
@@ -76,15 +81,17 @@ class DiscordIdTestEnvironment(
     val datasourceProvider = DatasourceProvider(context)
     val linkRepository = PlayerDiscordLinkEntityRepository(context)
     val codeRepository = PlayerDiscordLinkCodeEntityRepository(context)
-    val databaseService = DatabaseService(datasourceProvider, codeRepository, NOPLogger.NOP_LOGGER)
+    val auditLogRepository = AuditLogEntityRepository(context)
+    val auditLogService = AuditLogService(auditLogRepository, configProvider, NOPLogger.NOP_LOGGER)
+    val databaseService = DatabaseService(datasourceProvider, codeRepository, auditLogRepository, NOPLogger.NOP_LOGGER)
     val linkService = PlayerLinkService(linkRepository, configProvider)
     val codeService = PlayerLinkCodeService(codeRepository)
     val dataTransferService = DataTransferService(NOPLogger.NOP_LOGGER, DatabaseTransfer(context))
     val scheduledTasksFacade = ScheduledTasksFacade(configService, linkService, databaseService, NOPLogger.NOP_LOGGER)
 
-    val linkFacade by lazy { LinkFacade(linkService, codeService) }
-    val linkCommand by lazy { LinkCommand(linkFacade, configService) }
-    val lookupCommand by lazy { LookupCommand(linkFacade) }
+    val linkFacade by lazy { LinkFacade(linkService, codeService, auditLogService) }
+    val linkCommand by lazy { LinkCommand(linkFacade, configService, NOPLogger.NOP_LOGGER) }
+    val lookupCommand by lazy { LookupCommand(linkFacade, NOPLogger.NOP_LOGGER) }
     val readyEvent by lazy { ReadyEvent(NOPLogger.NOP_LOGGER, lookupCommand, linkCommand, configService) }
     val interactionEvent by lazy { InteractionEvent(lookupCommand, linkCommand) }
     val userRenameEvent by lazy { UserRenameEvent(linkFacade) }
@@ -101,7 +108,7 @@ class DiscordIdTestEnvironment(
         )
     }
     val adminCommandsFacade by lazy {
-        AdminCommandsFacade(NOPLogger.NOP_LOGGER, configService, databaseService, botMain, dataTransferService)
+        AdminCommandsFacade(NOPLogger.NOP_LOGGER, configService, databaseService, botMain, dataTransferService, auditLogService)
     }
 
     /**

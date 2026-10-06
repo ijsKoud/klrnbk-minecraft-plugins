@@ -2,6 +2,7 @@ package nl.klrnbk.minecraft.plugins.discordId.common
 
 import nl.klrnbk.minecraft.packages.database.DatasourceConfig
 import nl.klrnbk.minecraft.packages.database.DatasourceType
+import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogEntityTable
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkCodeTable
 import nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.PlayerDiscordLinkTable
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
@@ -36,15 +37,23 @@ class DatabaseServiceTest {
 
     @Test
     fun `every table of the plugin is registered for migrations and transfers`() {
-        assertEquals(listOf(PlayerDiscordLinkTable, PlayerDiscordLinkCodeTable), DatabaseService.TABLES)
+        assertEquals(listOf(PlayerDiscordLinkTable, PlayerDiscordLinkCodeTable, AuditLogEntityTable), DatabaseService.TABLES)
     }
 
     @Test
-    fun `starting migrates both tables`() {
+    fun `the links and the audit log are exported, not the short-lived link codes`() {
+        assertEquals(listOf(PlayerDiscordLinkTable, AuditLogEntityTable), DatabaseService.EXPORT_TABLES)
+    }
+
+    @Test
+    fun `starting migrates all tables`() {
         env.start()
 
         assertTrue(env.datasourceProvider.isConnected())
-        assertTrue(tableNames().containsAll(listOf("player_discord_link", "player_discord_link_code")), "tables: ${tableNames()}")
+        assertTrue(
+            tableNames().containsAll(listOf("player_discord_link", "player_discord_link_code", "discord_id_audit_logs")),
+            "tables: ${tableNames()}",
+        )
     }
 
     @Test

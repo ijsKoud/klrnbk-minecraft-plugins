@@ -209,9 +209,41 @@ class DiscordIdCommandTest {
     }
 
     @Test
+    fun `adminunlink by a player is logged with that player as the actor`() {
+        env.linkService.linkDiscordWithPlayer(identityId(bob), "222", "bob#1", false)
+
+        run("discordId adminunlink Bob", player(alice, Permissions.UNLINK_FORCED))
+
+        val entry = env.auditLogService.getLogs(nl.klrnbk.minecraft.packages.database.QueryPagination()).single()
+        assertEquals(nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogAction.FORCE_UNLINK, entry.action)
+        assertEquals(identityId(alice), entry.actorIdentityId)
+        assertEquals(identityId(bob), entry.targetIdentityId)
+    }
+
+    @Test
+    fun `export by the console is logged without an actor`() {
+        run("discordId export", console(Permissions.ADMIN_EXPORT))
+
+        val entry = env.auditLogService.getLogs(nl.klrnbk.minecraft.packages.database.QueryPagination()).single()
+        assertEquals(nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogAction.EXPORT, entry.action)
+        assertNull(entry.actorIdentityId)
+    }
+
+    @Test
     fun `adminunlink needs the permission and a player name`() {
         assertThrows(CommandSyntaxException::class.java) { run("discordId adminunlink Bob", console()) }
         assertThrows(CommandSyntaxException::class.java) { run("discordId adminunlink", console(Permissions.UNLINK_FORCED)) }
+    }
+
+    @Test
+    fun `reload answers with the translated success message and is logged`() {
+        run("discordId reload", console(Permissions.ADMIN_RELOAD))
+
+        assertEquals(LanguageKeys.LINK_CODE_RELOAD_SUCCESS, lastMessage().messageKey())
+        assertEquals(
+            nl.klrnbk.minecraft.plugins.discordId.common.providers.database.models.AuditLogAction.RELOAD,
+            env.auditLogService.getLogs(nl.klrnbk.minecraft.packages.database.QueryPagination()).single().action,
+        )
     }
 
     @Test

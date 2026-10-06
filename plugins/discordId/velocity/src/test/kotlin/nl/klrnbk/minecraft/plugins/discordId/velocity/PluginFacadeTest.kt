@@ -86,6 +86,8 @@ class PluginFacadeTest {
         assertTrue(config.useProxy)
         assertEquals("YOUR_BOT_TOKEN_HERE", config.discord.botToken)
         assertEquals(2592000000L, config.discord.unlinkCooldown)
+        assertTrue(config.logs.enabled)
+        assertEquals(90, config.logs.purgeLogsAfterDays)
     }
 
     @Test

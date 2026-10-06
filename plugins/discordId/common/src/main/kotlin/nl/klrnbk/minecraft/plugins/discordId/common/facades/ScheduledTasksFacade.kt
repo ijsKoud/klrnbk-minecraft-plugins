@@ -3,12 +3,16 @@ package nl.klrnbk.minecraft.plugins.discordId.common.facades
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.exceptions.ErrorResponseException
+import net.dv8tion.jda.api.requests.ErrorResponse
+import nl.klrnbk.minecraft.plugins.discordId.common.LOGS_CLEANUP_INTERVAL
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import org.slf4j.Logger
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.days
 
 @Singleton
 class ScheduledTasksFacade
@@ -34,6 +38,17 @@ class ScheduledTasksFacade
                 240,
                 TimeUnit.MINUTES,
             )
+            // The retention is read on every run, so a changed config applies after a reload.
+            scheduler.scheduleWithFixedDelay(
+                {
+                    runSafely("audit log cleanup") {
+                        databaseService.performLogsCleanup(configService.getConfig().logs.purgeLogsAfterDays.days)
+                    }
+                },
+                1,
+                LOGS_CLEANUP_INTERVAL.toMinutes(),
+                TimeUnit.MINUTES,
+            )
             scheduler.scheduleWithFixedDelay(
                 { runSafely("link code cleanup") { databaseService.performCleanup() } },
                 0,
@@ -55,10 +70,11 @@ class ScheduledTasksFacade
         }
 
         fun stop() {
+            if (!::scheduler.isInitialized) return
             scheduler.shutdown()
 
             try {
-                if (!scheduler.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
                     scheduler.shutdownNow()
                 }
             } catch (e: InterruptedException) {
@@ -86,13 +102,27 @@ class ScheduledTasksFacade
                     }
                 }
 
-                boosterRole?.guild?.getMemberById(it.discordId)?.let { member ->
-                    val hasBoosterRole = member.roles.any { role -> role.id == config.discord.boosterRole }
-                    if (hasBoosterRole != it.isBooster) {
-                        playerLinkService.updateBoosterStatusForLinkedPlayer(it.identityId, hasBoosterRole)
-                    }
-                }
+                boosterRole?.guild?.retrieveMemberById(it.discordId)?.queue(
+                    { member ->
+                        val hasBoosterRole = member.roles.any { role -> role.id == config.discord.boosterRole }
+                        if (hasBoosterRole != it.isBooster) {
+                            playerLinkService.updateBoosterStatusForLinkedPlayer(it.identityId, hasBoosterRole)
+                        }
+                    },
+                    { exception ->
+                        if (exception is ErrorResponseException && exception.errorResponse == ErrorResponse.UNKNOWN_MEMBER) {
+                            // The user left the server, so they can't be boosting it anymore.
+                            if (it.isBooster) playerLinkService.updateBoosterStatusForLinkedPlayer(it.identityId, false)
+                        } else {
+                            logger.error(
+                                "Failed to retrieve member for Discord ID ${it.discordId} while checking for player link differences.",
+                                exception,
+                            )
+                        }
+                    },
+                )
             }
+
             logger.debug("Finished checking for player link differences.")
         }
     }

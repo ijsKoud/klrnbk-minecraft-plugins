@@ -12,6 +12,13 @@ discord:
   status-type: 3 # 0 = Playing, 1 = Streaming, 2 = Listening, 3 = Watching, 4 = Custom, 5 = Competing
   bot-token: 'YOUR_BOT_TOKEN_HERE'
 
+# The audit log: who linked, unlinked or administrated what, with a timestamp.
+logs:
+  # Whether to write the audit log.
+  enabled: true
+  # The number of days after which audit logs are removed.
+  purge-logs-after-days: 90
+
 # Database
 database:
   # The database type to use. Supported values: MYSQL, POSTGRESQL, SQLITE
