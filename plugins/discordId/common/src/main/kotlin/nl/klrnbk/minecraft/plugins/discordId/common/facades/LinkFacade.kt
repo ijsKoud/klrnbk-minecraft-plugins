@@ -83,4 +83,20 @@ class LinkFacade
 
             return identityPlayer.name
         }
+
+        fun updateDiscordNameForLinkedPlayer(
+            discordId: String,
+            discordName: String,
+        ) {
+            val identityId = playerDiscordLinkService.getLinkDetailsByDiscordId(discordId)?.identityId ?: return
+            playerDiscordLinkService.updateDiscordUsernameForLinkedPlayer(identityId, discordName)
+        }
+
+        fun updateDiscordBoosterStatusForLinkedPlayer(
+            discordId: String,
+            isBooster: Boolean,
+        ) {
+            val identityId = playerDiscordLinkService.getLinkDetailsByDiscordId(discordId)?.identityId ?: return
+            playerDiscordLinkService.updateBoosterStatusForLinkedPlayer(identityId, isBooster)
+        }
     }

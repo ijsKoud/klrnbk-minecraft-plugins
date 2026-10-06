@@ -56,6 +56,30 @@ class PlayerLinkService
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
+        fun updateDiscordUsernameForLinkedPlayer(
+            identityId: Uuid,
+            discordName: String,
+        ): PlayerDiscordLinkDetails {
+            val entity =
+                playerDiscordLinkEntityRepository.findByIdentityId(identityId)
+                    ?: throw IllegalArgumentException("Player is not linked to a Discord account")
+
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, entity.discordId, discordName, entity.isBooster)
+            return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
+        }
+
+        fun updateBoosterStatusForLinkedPlayer(
+            identityId: Uuid,
+            isBooster: Boolean,
+        ): PlayerDiscordLinkDetails {
+            val entity =
+                playerDiscordLinkEntityRepository.findByIdentityId(identityId)
+                    ?: throw IllegalArgumentException("Player is not linked to a Discord account")
+
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, entity.discordId, entity.discordName, isBooster)
+            return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
+        }
+
         fun canLinkDiscordToPlayer(
             identityId: Uuid,
             discordId: String,
