@@ -32,7 +32,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.days
 import kotlin.uuid.toKotlinUuid
@@ -223,10 +222,6 @@ class BotTest {
 
     // BotMain
 
-    @Disabled(
-        "Known bug: ScheduledTasksFacade.stop() reads its lateinit scheduler, which only exists after start(), so " +
-            "stopping after a failed bot start (e.g. bad token) throws UninitializedPropertyAccessException.",
-    )
     @Test
     fun `stopping a bot that never started does not throw`() {
         // E.g. the plugin is disabled after the bot failed to log in because of a bad token.
