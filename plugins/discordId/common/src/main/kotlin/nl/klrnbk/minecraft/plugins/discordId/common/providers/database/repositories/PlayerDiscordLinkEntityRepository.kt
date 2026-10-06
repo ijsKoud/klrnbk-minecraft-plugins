@@ -14,30 +14,39 @@ class PlayerDiscordLinkEntityRepository
     constructor(
         context: DatabaseContext,
     ) : BaseRepository(context) {
-        fun findByEntityId(entityId: Uuid): PlayerDiscordLinkEntity? =
+        fun findByIdentityId(identityId: Uuid): PlayerDiscordLinkEntity? =
             execute {
                 PlayerDiscordLinkEntity
-                    .findById(entityId)
+                    .findById(identityId)
             }
 
-        fun upsert(
-            entityId: Uuid,
+        fun create(
+            identityId: Uuid,
+            discordId: String,
+            isBooster: Boolean,
+        ): PlayerDiscordLinkEntity =
+            execute {
+                val playerEntity = findByIdentityId(identityId)
+                if (playerEntity != null) throw IllegalArgumentException("Player already exists")
+
+                PlayerDiscordLinkEntity.new(identityId) {
+                    this.discordId = discordId
+                    this.isBooster = isBooster
+                    this.lastUpdatedAt = Clock.System.now()
+                }
+            }
+
+        fun update(
+            identityId: Uuid,
             discordId: String?,
             isBooster: Boolean,
         ): PlayerDiscordLinkEntity =
             execute {
-                val playerEntity = findByEntityId(entityId)
-                if (playerEntity != null) {
-                    playerEntity.discordId = discordId
-                    playerEntity.isBooster = isBooster
-                    playerEntity.lastUpdatedAt = Clock.System.now()
-                    playerEntity
-                } else {
-                    PlayerDiscordLinkEntity.new(entityId) {
-                        this.discordId = discordId
-                        this.isBooster = isBooster
-                        this.lastUpdatedAt = Clock.System.now()
-                    }
-                }
+                val playerEntity = findByIdentityId(identityId) ?: throw IllegalArgumentException("Player does not exist")
+
+                playerEntity.discordId = discordId
+                playerEntity.isBooster = isBooster
+                playerEntity.lastUpdatedAt = Clock.System.now()
+                playerEntity
             }
     }
