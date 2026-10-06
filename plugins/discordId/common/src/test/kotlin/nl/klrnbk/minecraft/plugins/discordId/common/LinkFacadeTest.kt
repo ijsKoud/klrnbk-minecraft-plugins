@@ -11,7 +11,6 @@ import nl.klrnbk.minecraft.plugins.identity.api.IdentityApi
 import nl.klrnbk.minecraft.plugins.identity.api.IdentityProvider
 import nl.klrnbk.minecraft.plugins.identity.api.models.IdentityPlayer
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -288,15 +287,23 @@ class LinkFacadeTest {
         assertFalse(checkNotNull(env.linkService.getLinkDetailsByIdentityId(alice.identityId())).isLinked)
     }
 
-    @Disabled(
-        "Known bug: force unlinking a player who never linked throws IllegalArgumentException from " +
-            "unlinkDiscordFromPlayer instead of answering with the unlink-failed message.",
-    )
     @Test
     fun `force unlinking a player who never linked is a failure message`() {
         val message = facade.forceUnlinkPlayer("alice")
 
         assertEquals(LanguageKeys.LINK_CODE_UNLINK_FAILED, message.messageKey())
+    }
+
+    @Test
+    fun `unlinking a player who already unlinked changes nothing, not even when forced`() {
+        link(alice, "111")
+        env.linkService.unlinkDiscordFromPlayer(alice.identityId())
+        val before = checkNotNull(env.linkService.getLinkDetailsByIdentityId(alice.identityId())).lastUpdatedAt
+
+        val message = facade.forceUnlinkPlayer("alice")
+
+        assertEquals(LanguageKeys.LINK_CODE_UNLINK_FAILED, message.messageKey())
+        assertEquals(before, checkNotNull(env.linkService.getLinkDetailsByIdentityId(alice.identityId())).lastUpdatedAt)
     }
 
     @Test

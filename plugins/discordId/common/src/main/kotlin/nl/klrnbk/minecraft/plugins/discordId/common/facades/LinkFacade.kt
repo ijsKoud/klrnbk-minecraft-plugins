@@ -72,6 +72,12 @@ class LinkFacade
                     ?: throw IllegalArgumentException("Player does not exist on identity but should")
             val identityId = identityPlayer.id.toKotlinUuid()
 
+            // Nothing to unlink without a linked Discord account, also when forced or bypassed.
+            val linkDetails = playerDiscordLinkService.getLinkDetailsByIdentityId(identityId)
+            if (linkDetails == null || !linkDetails.isLinked) {
+                return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
+            }
+
             val canUnlink = playerDiscordLinkService.canUnlinkDiscordFromPlayer(identityId)
             if (!canUnlink && !isForced && !isBypassed) {
                 return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
