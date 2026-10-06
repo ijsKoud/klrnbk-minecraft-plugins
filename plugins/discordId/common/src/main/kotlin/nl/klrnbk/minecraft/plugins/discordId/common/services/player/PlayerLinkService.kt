@@ -80,6 +80,11 @@ class PlayerLinkService
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
+        fun getAllLinkedPlayers(): List<PlayerDiscordLinkDetails> {
+            val entities = playerDiscordLinkEntityRepository.findAll()
+            return entities.map { PlayerDiscordLinkDetails.fromEntity(it) }
+        }
+
         fun canLinkDiscordToPlayer(
             identityId: Uuid,
             discordId: String,
