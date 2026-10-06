@@ -17,15 +17,15 @@ class RoleChangeEvent
     ) : ListenerAdapter() {
         override fun onGuildMemberRoleAdd(event: GuildMemberRoleAddEvent) {
             val config = configService.getConfig()
-            val isBooster = event.roles.find { it.id == config.discord.boosterRole } != null
+            val isBoosterRole = event.roles.find { it.id == config.discord.boosterRole } != null
 
-            linkFacade.updateDiscordBoosterStatusForLinkedPlayer(event.user.id, isBooster)
+            if (isBoosterRole) linkFacade.updateDiscordBoosterStatusForLinkedPlayer(event.user.id, true)
         }
 
         override fun onGuildMemberRoleRemove(event: GuildMemberRoleRemoveEvent) {
             val config = configService.getConfig()
-            val isBooster = event.roles.find { it.id == config.discord.boosterRole } != null
+            val isBoosterRole = event.roles.find { it.id == config.discord.boosterRole } != null
 
-            linkFacade.updateDiscordBoosterStatusForLinkedPlayer(event.user.id, isBooster)
+            if (isBoosterRole) linkFacade.updateDiscordBoosterStatusForLinkedPlayer(event.user.id, false)
         }
     }
