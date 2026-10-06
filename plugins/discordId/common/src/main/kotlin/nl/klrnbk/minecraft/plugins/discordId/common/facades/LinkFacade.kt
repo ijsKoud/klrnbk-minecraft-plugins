@@ -28,7 +28,12 @@ class LinkFacade
         fun lookupPlayer(playerName: String): TextComponent {
             val identityPlayer =
                 identityApi.getPlayerFromName(playerName)
-                    ?: return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_UNLINK_FAILED).build()
+                    ?: return MessageFactory
+                        .factory()
+                        .appendAndParseWithTranslatable(
+                            LanguageKeys.LINK_CODE_LOOKUP_FAILED,
+                            Component.text(playerName),
+                        ).build()
 
             val identityId = identityPlayer.id.toKotlinUuid()
 
