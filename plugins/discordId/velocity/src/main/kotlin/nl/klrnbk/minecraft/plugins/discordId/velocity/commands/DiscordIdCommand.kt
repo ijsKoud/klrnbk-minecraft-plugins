@@ -1,0 +1,152 @@
+package nl.klrnbk.minecraft.plugins.discordId.velocity.commands
+
+import com.google.inject.Inject
+import com.google.inject.Singleton
+import com.mojang.brigadier.context.CommandContext
+import com.velocitypowered.api.command.BrigadierCommand
+import com.velocitypowered.api.command.CommandManager
+import com.velocitypowered.api.command.CommandMeta
+import com.velocitypowered.api.command.CommandSource
+import com.velocitypowered.api.plugin.annotation.DataDirectory
+import com.velocitypowered.api.proxy.Player
+import nl.klrnbk.minecraft.packages.velocity.commands.models.Command
+import nl.klrnbk.minecraft.plugins.discordId.common.LanguageKeys
+import nl.klrnbk.minecraft.plugins.discordId.common.Permissions
+import nl.klrnbk.minecraft.plugins.discordId.common.facades.AdminCommandsFacade
+import nl.klrnbk.minecraft.plugins.discordId.common.facades.LinkFacade
+import nl.klrnbk.minecraft.plugins.pkgs.i18n.factories.MessageFactory
+import java.nio.file.Path
+import kotlin.uuid.toKotlinUuid
+
+@Singleton
+class DiscordIdCommand
+    @Inject
+    constructor(
+        private val adminCommandsFacade: AdminCommandsFacade,
+        private val linkFacade: LinkFacade,
+        @DataDirectory private val dataDirectory: Path,
+    ) : Command {
+        override fun configure(): BrigadierCommand {
+            val commandNode =
+                BrigadierCommand
+                    .literalArgumentBuilder("discordId")
+                    .then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("reload")
+                            .requires { source -> source.hasPermission(Permissions.ADMIN_RELOAD) }
+                            .executes(::executeReload)
+                            .build(),
+                    ).then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("import")
+                            .requires { source -> source.hasPermission(Permissions.ADMIN_IMPORT) }
+                            .executes(::executeImport)
+                            .build(),
+                    ).then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("export")
+                            .requires { source -> source.hasPermission(Permissions.ADMIN_EXPORT) }
+                            .executes(::executeExport)
+                            .build(),
+                    ).then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("link")
+                            .requires { source -> source.hasPermission(Permissions.LINK) && source is Player }
+                            .executes(::executeLink)
+                            .build(),
+                    ).then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("unlink")
+                            .requires { source -> source.hasPermission(Permissions.UNLINK) && source is Player }
+                            .executes(::executeUnlink)
+                            .build(),
+                    ).then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("lookup")
+                            .requires { source -> source.hasPermission(Permissions.LOOKUP) }
+                            .executes(::executeLookup)
+                            .build(),
+                    ).then(
+                        BrigadierCommand
+                            .literalArgumentBuilder("adminunlink")
+                            .requires { source -> source.hasPermission(Permissions.UNLINK_FORCED) }
+                            .executes(::executeUnlinkForced)
+                            .build(),
+                    ).build()
+
+            return BrigadierCommand(commandNode)
+        }
+
+        override fun meta(
+            manager: CommandManager,
+            plugin: Any,
+        ): CommandMeta =
+            manager
+                .metaBuilder(configure())
+                .aliases("klrnbk-discordId", "discordid")
+                .plugin(plugin)
+                .build()
+
+        private fun executeReload(source: CommandContext<CommandSource>): Int {
+            adminCommandsFacade.reload(dataDirectory)
+            val message =
+                MessageFactory
+                    .factory()
+                    .appendAndParseWithMiniMessage(LanguageKeys.LINK_CODE_RELOAD_SUCCESS)
+                    .build()
+
+            source.source.sendMessage(message)
+
+            return 0
+        }
+
+        private fun executeImport(source: CommandContext<CommandSource>): Int {
+            val fileName = source.getArgument("file", String::class.java)
+            val message = adminCommandsFacade.importData(dataDirectory, fileName)
+            source.source.sendMessage(message)
+
+            return 0
+        }
+
+        private fun executeExport(source: CommandContext<CommandSource>): Int {
+            val message = adminCommandsFacade.exportData(dataDirectory)
+            source.source.sendMessage(message)
+
+            return 0
+        }
+
+        private fun executeUnlink(source: CommandContext<CommandSource>): Int {
+            val player = source.source as Player
+            val isBypassed = player.hasPermission(Permissions.UNLINK_BYPASS)
+
+            val message = linkFacade.unlinkPlayer(player.uniqueId.toKotlinUuid(), false, isBypassed)
+            source.source.sendMessage(message)
+
+            return 0
+        }
+
+        private fun executeLink(source: CommandContext<CommandSource>): Int {
+            val player = source.source as Player
+            val message = linkFacade.getLinkCodeForPlayer(player.uniqueId.toKotlinUuid())
+
+            source.source.sendMessage(message)
+
+            return 0
+        }
+
+        private fun executeUnlinkForced(source: CommandContext<CommandSource>): Int {
+            val player = source.getArgument("player", Player::class.java)
+            val message = linkFacade.unlinkPlayer(player.uniqueId.toKotlinUuid(), isForced = true, isBypassed = true)
+            source.source.sendMessage(message)
+
+            return 0
+        }
+
+        private fun executeLookup(source: CommandContext<CommandSource>): Int {
+            val player = source.getArgument("player", Player::class.java)
+            val message = linkFacade.lookupPlayer(player.uniqueId.toKotlinUuid())
+            source.source.sendMessage(message)
+
+            return 0
+        }
+    }
