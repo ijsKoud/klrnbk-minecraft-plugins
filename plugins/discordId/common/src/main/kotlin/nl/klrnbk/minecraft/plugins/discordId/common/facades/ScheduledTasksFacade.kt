@@ -7,6 +7,7 @@ import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigServic
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import org.slf4j.Logger
+import java.util.concurrent.ScheduledExecutorService
 
 @Singleton
 class ScheduledTasksFacade
@@ -17,11 +18,12 @@ class ScheduledTasksFacade
         private val databaseService: DatabaseService,
         private val logger: Logger,
     ) {
-        private val scheduler =
-            java.util.concurrent.Executors
-                .newScheduledThreadPool(1)
+        private lateinit var scheduler: ScheduledExecutorService
 
         fun start(jda: JDA) {
+            scheduler =
+                java.util.concurrent.Executors
+                    .newScheduledThreadPool(1)
             // We schedule a task to check for player link differences every 4 hours,
             // with an initial delay of 10 minutes, the delay is to prevent a race condition where the bot starts and checks are already started.
             // This check is to ensure that the linked players in the database are up to date with the Discord usernames and booster roles after for example an outage or downtime.
