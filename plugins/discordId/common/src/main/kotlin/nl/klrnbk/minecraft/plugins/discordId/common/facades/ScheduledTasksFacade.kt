@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import net.dv8tion.jda.api.JDA
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
+import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import org.slf4j.Logger
 
@@ -13,6 +14,7 @@ class ScheduledTasksFacade
     constructor(
         private val configService: ConfigService,
         private val playerLinkService: PlayerLinkService,
+        private val databaseService: DatabaseService,
         private val logger: Logger,
     ) {
         private val scheduler =
@@ -27,6 +29,13 @@ class ScheduledTasksFacade
                 { checkForPlayerLinkDifferences(jda) },
                 10,
                 240,
+                java.util.concurrent.TimeUnit.MINUTES,
+            )
+
+            scheduler.scheduleWithFixedDelay(
+                { databaseService.performCleanup() },
+                0,
+                1,
                 java.util.concurrent.TimeUnit.MINUTES,
             )
         }

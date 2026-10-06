@@ -102,9 +102,10 @@ class PlayerLinkService
         }
 
         fun canRequestLinkCode(identityId: Uuid): Boolean {
-            if (canUnlinkDiscordFromPlayer(identityId).not()) return false
-
             val entity = playerDiscordLinkEntityRepository.findByIdentityId(identityId) ?: return true
-            return entity.discordId.isNullOrEmpty()
+            return entity.discordId.isNullOrEmpty() && entity.lastUpdatedAt +
+                configProvider.config.discord.unlinkCooldown
+                    .toDuration(kotlin.time.DurationUnit.MILLISECONDS) <
+                Clock.System.now()
         }
     }

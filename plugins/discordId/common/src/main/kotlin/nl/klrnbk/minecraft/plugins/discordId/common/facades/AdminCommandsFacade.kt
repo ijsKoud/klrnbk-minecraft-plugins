@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import nl.klrnbk.minecraft.packages.database.transfer.DatabaseTransferException
 import nl.klrnbk.minecraft.plugins.discordId.common.LanguageKeys
+import nl.klrnbk.minecraft.plugins.discordId.common.bot.BotMain
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DataTransferService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
@@ -20,6 +21,7 @@ class AdminCommandsFacade
         private val logger: Logger,
         private val configService: ConfigService,
         private val databaseService: DatabaseService,
+        private val botMain: BotMain,
         private val dataTransferService: DataTransferService,
     ) {
         fun reload(dataDirectory: Path) {
@@ -27,6 +29,8 @@ class AdminCommandsFacade
             val config = configService.load(dataDirectory)
 
             databaseService.restart(config.database, dataDirectory)
+            botMain.stop()
+            botMain.start()
             logger.info("Plugin is reloaded.")
         }
 
