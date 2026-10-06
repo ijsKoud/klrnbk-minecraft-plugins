@@ -34,8 +34,8 @@ class PluginFacade
         }
 
         fun stop() {
-            databaseService.stop()
             botMain.stop()
+            databaseService.stop()
             logger.info("Plugin stopped on Velocity.")
         }
     }
