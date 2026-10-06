@@ -93,7 +93,7 @@ class PlayerLinkService
         fun canUnlinkDiscordFromPlayer(identityId: Uuid): Boolean {
             val entity =
                 playerDiscordLinkEntityRepository.findByIdentityId(identityId)
-                    ?: throw IllegalArgumentException("Player is not linked to a Discord account")
+                    ?: return false
 
             return entity.lastUpdatedAt +
                 configProvider.config.discord.unlinkCooldown
