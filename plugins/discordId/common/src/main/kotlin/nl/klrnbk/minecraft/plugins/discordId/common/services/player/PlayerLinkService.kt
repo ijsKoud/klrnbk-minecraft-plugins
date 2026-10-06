@@ -40,7 +40,7 @@ class PlayerLinkService
             }
 
             if (!entity.discordId.isNullOrEmpty()) throw IllegalArgumentException("Player is already linked to a Discord account")
-            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, discordId, discordName, isBooster)
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, discordId, discordName, isBooster, true)
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
@@ -48,7 +48,14 @@ class PlayerLinkService
             playerDiscordLinkEntityRepository.findByIdentityId(identityId)
                 ?: throw IllegalArgumentException("Player is not linked to a Discord account")
 
-            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, null, null, false)
+            val updatedEntity =
+                playerDiscordLinkEntityRepository.update(
+                    identityId,
+                    null,
+                    null,
+                    isBooster = false,
+                    updateLastUpdatedAt = true,
+                )
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
@@ -60,7 +67,7 @@ class PlayerLinkService
                 playerDiscordLinkEntityRepository.findByIdentityId(identityId)
                     ?: throw IllegalArgumentException("Player is not linked to a Discord account")
 
-            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, entity.discordId, discordName, entity.isBooster)
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, entity.discordId, discordName, entity.isBooster, false)
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
@@ -72,7 +79,14 @@ class PlayerLinkService
                 playerDiscordLinkEntityRepository.findByIdentityId(identityId)
                     ?: throw IllegalArgumentException("Player is not linked to a Discord account")
 
-            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, entity.discordId, entity.discordName, isBooster)
+            val updatedEntity =
+                playerDiscordLinkEntityRepository.update(
+                    identityId,
+                    entity.discordId,
+                    entity.discordName,
+                    isBooster = isBooster,
+                    updateLastUpdatedAt = false,
+                )
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
