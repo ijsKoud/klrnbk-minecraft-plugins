@@ -79,4 +79,11 @@ class LinkFacade
                     instantToComponentText(MessageFactory.factory().miniMessage, linkCodeDetails.validUntil),
                 ).build()
         }
+
+        fun getMinecraftUsernameOfDiscordUser(discordId: String): String? {
+            val identityId = playerDiscordLinkService.getLinkDetailsByDiscordId(discordId)?.identityId ?: return null
+            val identityPlayer = identityApi.getPlayerFromId(identityId.toJavaUuid()) ?: return null
+
+            return identityPlayer.name
+        }
     }
