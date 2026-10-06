@@ -21,7 +21,7 @@ class PluginFacade
         private val commandRegistryService: CommandRegistryService,
         private val logger: Logger,
     ) {
-        private val translationService = TranslationService(Key.key("discordId", "velocity"))
+        private val translationService = TranslationService(Key.key("discord-id", "velocity"))
 
         fun start(plugin: VelocityPlugin) {
             val config = configService.load(plugin.dataDirectory)
