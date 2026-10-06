@@ -57,12 +57,12 @@ class DiscordIdCommand
                 "link" -> withPlayer(sender) { executeLink(it) }
                 "unlink" -> withPlayer(sender) { executeUnlink(it) }
                 "lookup" -> sender.sendMessage(linkFacade.lookupPlayer(args.getOrNull(1) ?: return false))
-                "adminunlink" -> sender.sendMessage(linkFacade.forceUnlinkPlayer(args.getOrNull(1) ?: return false))
-                "reload" -> async(sender) { reload() }
-                "export" -> async(sender) { adminCommandsFacade.exportData(plugin.dataFolder.toPath()) }
+                "adminunlink" -> sender.sendMessage(linkFacade.forceUnlinkPlayer(args.getOrNull(1) ?: return false, actorOf(sender)))
+                "reload" -> async(sender) { reload(actorOf(sender)) }
+                "export" -> async(sender) { adminCommandsFacade.exportData(plugin.dataFolder.toPath(), actorOf(sender)) }
                 "import" -> {
                     val fileName = args.getOrNull(1) ?: return false
-                    async(sender) { adminCommandsFacade.importData(plugin.dataFolder.toPath(), fileName) }
+                    async(sender) { adminCommandsFacade.importData(plugin.dataFolder.toPath(), fileName, actorOf(sender)) }
                 }
             }
 
@@ -95,8 +95,11 @@ class DiscordIdCommand
             player.sendMessage(linkFacade.unlinkPlayer(player.uniqueId.toKotlinUuid(), false, isBypassed))
         }
 
-        private fun reload(): Component {
-            adminCommandsFacade.reload(plugin.dataFolder.toPath())
+        // The Minecraft UUID of the sender, null for the console.
+        private fun actorOf(sender: CommandSender) = (sender as? Player)?.uniqueId?.toKotlinUuid()
+
+        private fun reload(actorPlayerId: kotlin.uuid.Uuid?): Component {
+            adminCommandsFacade.reload(plugin.dataFolder.toPath(), actorPlayerId)
             return MessageFactory
                 .factory()
                 .appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_RELOAD_SUCCESS)

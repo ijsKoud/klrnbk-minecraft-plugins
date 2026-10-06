@@ -5,12 +5,14 @@ import com.google.inject.Singleton
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.api.requests.ErrorResponse
+import nl.klrnbk.minecraft.plugins.discordId.common.LOGS_CLEANUP_INTERVAL
 import nl.klrnbk.minecraft.plugins.discordId.common.services.config.ConfigService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.database.DatabaseService
 import nl.klrnbk.minecraft.plugins.discordId.common.services.player.PlayerLinkService
 import org.slf4j.Logger
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.days
 
 @Singleton
 class ScheduledTasksFacade
@@ -34,6 +36,17 @@ class ScheduledTasksFacade
                 { runSafely("player link check") { checkForPlayerLinkDifferences(jda) } },
                 10,
                 240,
+                TimeUnit.MINUTES,
+            )
+            // The retention is read on every run, so a changed config applies after a reload.
+            scheduler.scheduleWithFixedDelay(
+                {
+                    runSafely("audit log cleanup") {
+                        databaseService.performLogsCleanup(configService.getConfig().logs.purgeLogsAfterDays.days)
+                    }
+                },
+                1,
+                LOGS_CLEANUP_INTERVAL.toMinutes(),
                 TimeUnit.MINUTES,
             )
             scheduler.scheduleWithFixedDelay(

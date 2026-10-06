@@ -109,8 +109,11 @@ class DiscordIdCommand
                 .plugin(plugin)
                 .build()
 
+        // The Minecraft UUID of the sender, null for the console.
+        private fun actorOf(context: CommandContext<CommandSource>) = (context.source as? Player)?.uniqueId?.toKotlinUuid()
+
         private fun executeReload(source: CommandContext<CommandSource>): Int {
-            adminCommandsFacade.reload(dataDirectory)
+            adminCommandsFacade.reload(dataDirectory, actorOf(source))
             val message =
                 MessageFactory
                     .factory()
@@ -124,14 +127,14 @@ class DiscordIdCommand
 
         private fun executeImport(source: CommandContext<CommandSource>): Int {
             val fileName = source.getArgument("file", String::class.java)
-            val message = adminCommandsFacade.importData(dataDirectory, fileName)
+            val message = adminCommandsFacade.importData(dataDirectory, fileName, actorOf(source))
             source.source.sendMessage(message)
 
             return 0
         }
 
         private fun executeExport(source: CommandContext<CommandSource>): Int {
-            val message = adminCommandsFacade.exportData(dataDirectory)
+            val message = adminCommandsFacade.exportData(dataDirectory, actorOf(source))
             source.source.sendMessage(message)
 
             return 0
@@ -158,7 +161,7 @@ class DiscordIdCommand
 
         private fun executeUnlinkForced(source: CommandContext<CommandSource>): Int {
             val player = source.getArgument("player", String::class.java)
-            val message = linkFacade.forceUnlinkPlayer(player)
+            val message = linkFacade.forceUnlinkPlayer(player, actorOf(source))
             source.source.sendMessage(message)
 
             return 0

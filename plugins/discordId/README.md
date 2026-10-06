@@ -67,6 +67,8 @@ the `exports` folder of the new setup if needed, then import.
 | `discord.unlink-cooldown` | `2592000000` | Milliseconds (30 days) before a player may unlink, or request a new code after unlinking. |
 | `discord.status-message` | `Discord & Minecraft players` | Text of the bot's presence. |
 | `discord.status-type` | `3` | `0` Playing, `1` Streaming, `2` Listening, `3` Watching, `4` Custom, `5` Competing. |
+| `logs.enabled` | `true` | Write the audit log (see below). |
+| `logs.purge-logs-after-days` | `90` | Audit log entries older than this are removed (checked daily, while the bot runs). |
 | `database.type` | `SQLITE` | `SQLITE`, `MYSQL` (MariaDB) or `POSTGRESQL`. |
 | `database.host` / `port` / `database` / `username` / `password` | `localhost` / `3306` / `database.db` / `root` / `password` | Connection details. For `SQLITE`, `database` is a file in the plugin's data folder and the rest is ignored. |
 | `database.maximum-pool-size` | `10` | Size of the connection pool. |
@@ -89,6 +91,17 @@ usernames and booster statuses of linked players, for example after downtime.
 
 If the bot can't log in (for example an invalid `discord.bot-token`), the error is logged and the plugin keeps
 running without the bot.
+
+## Audit log
+
+Every link, unlink, forced unlink, reload, export and import is stored in the database (`logs.enabled`, on by default)
+with a timestamp, who did it, the player it was about, the Discord account involved and details such as the export file
+name. The actor is the Identity ID of the sender, and empty for the console. Entries older than
+`logs.purge-logs-after-days` are removed daily, and refused actions (for example an unlink during the cooldown) are not
+logged. A failure to write an entry is reported in the console and never fails the action itself.
+
+The log is stored in the `discord_id_audit_logs` table. There is no command to read it yet, and it is not part of
+`/discordid export`.
 
 ## Messages
 

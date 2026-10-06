@@ -1,8 +1,11 @@
 package nl.klrnbk.minecraft.plugins.discordId.common
 
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toJavaDuration
 
 val LINK_CODE_VALIDITY_DURATION = 20.minutes
+val LOGS_CLEANUP_INTERVAL = 1.days.toJavaDuration()
 
 object LanguageKeys {
     const val LINK_CODE_DETAILS = "discord-id.linkCode.details"
