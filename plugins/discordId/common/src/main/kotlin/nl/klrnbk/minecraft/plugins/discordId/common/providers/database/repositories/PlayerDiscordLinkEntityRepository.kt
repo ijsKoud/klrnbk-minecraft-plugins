@@ -32,6 +32,7 @@ class PlayerDiscordLinkEntityRepository
         fun create(
             identityId: Uuid,
             discordId: String,
+            discordName: String,
             isBooster: Boolean,
         ): PlayerDiscordLinkEntity =
             execute {
@@ -40,6 +41,7 @@ class PlayerDiscordLinkEntityRepository
 
                 PlayerDiscordLinkEntity.new(identityId) {
                     this.discordId = discordId
+                    this.discordName = discordName
                     this.isBooster = isBooster
                     this.lastUpdatedAt = Clock.System.now()
                 }
@@ -48,12 +50,14 @@ class PlayerDiscordLinkEntityRepository
         fun update(
             identityId: Uuid,
             discordId: String?,
+            discordName: String?,
             isBooster: Boolean,
         ): PlayerDiscordLinkEntity =
             execute {
                 val playerEntity = findByIdentityId(identityId) ?: throw IllegalArgumentException("Player does not exist")
 
                 playerEntity.discordId = discordId
+                playerEntity.discordName = discordName
                 playerEntity.isBooster = isBooster
                 playerEntity.lastUpdatedAt = Clock.System.now()
                 playerEntity

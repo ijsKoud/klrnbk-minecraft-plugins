@@ -8,4 +8,5 @@ data class DiscordIdPluginDiscordConfig(
     val unlinkCooldown: Long = 30.days.toLong(DurationUnit.MILLISECONDS),
     val statusMessage: String = "Discord & Minecraft players",
     val statusType: String? = "WATCHING",
+    val botToken: String? = null,
 )

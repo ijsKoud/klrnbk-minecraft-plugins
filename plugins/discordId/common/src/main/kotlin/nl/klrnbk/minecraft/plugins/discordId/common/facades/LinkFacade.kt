@@ -39,6 +39,7 @@ class LinkFacade
         fun linkPlayer(
             linkCode: String,
             discordId: String,
+            discordName: String,
             isBooster: Boolean,
         ): TextComponent {
             val codeDetails =
@@ -55,7 +56,7 @@ class LinkFacade
             val canLink = playerDiscordLinkService.canLinkDiscordToPlayer(identityId, discordId)
             if (!canLink) return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_ALREADY_LINKED).build()
 
-            playerDiscordLinkService.linkDiscordWithPlayer(identityId, discordId, isBooster)
+            playerDiscordLinkService.linkDiscordWithPlayer(identityId, discordId, discordName, isBooster)
             playerLinkCodeService.deleteCodeDetailsForPlayer(codeDetails.playerEntityId)
             return MessageFactory.factory().appendAndParseWithTranslatable(LanguageKeys.LINK_CODE_SUCCESS).build()
         }

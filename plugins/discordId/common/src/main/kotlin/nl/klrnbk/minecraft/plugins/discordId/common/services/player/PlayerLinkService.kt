@@ -25,16 +25,17 @@ class PlayerLinkService
         fun linkDiscordWithPlayer(
             identityId: Uuid,
             discordId: String,
+            discordName: String,
             isBooster: Boolean,
         ): PlayerDiscordLinkDetails {
             val entity = playerDiscordLinkEntityRepository.findByIdentityId(identityId)
             if (entity == null) {
-                val newEntity = playerDiscordLinkEntityRepository.create(identityId, discordId, isBooster)
+                val newEntity = playerDiscordLinkEntityRepository.create(identityId, discordId, discordName, isBooster)
                 return PlayerDiscordLinkDetails.fromEntity(newEntity)
             }
 
             if (!entity.discordId.isNullOrEmpty()) throw IllegalArgumentException("Player is already linked to a Discord account")
-            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, discordId, isBooster)
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, discordId, discordName, isBooster)
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
@@ -46,7 +47,7 @@ class PlayerLinkService
                 throw IllegalArgumentException("Player is not allowed to unlink their Discord account yet")
             }
 
-            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, null, false)
+            val updatedEntity = playerDiscordLinkEntityRepository.update(identityId, null, null, false)
             return PlayerDiscordLinkDetails.fromEntity(updatedEntity)
         }
 
